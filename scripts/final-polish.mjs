@@ -1,0 +1,11 @@
+import { readFile, writeFile } from 'node:fs/promises';
+let app = await readFile('src/App.tsx', 'utf8');
+app = app.replace("import { email, type Project } from './data';", "import { email, type Project } from './data';\nimport CaseStudyBoundary from './components/CaseStudyBoundary';");
+app = app.replace('{project && <Suspense', '{project && <CaseStudyBoundary key={project.id} close={() => setProject(null)}><Suspense').replace('</Suspense>}</ScrollChoreography>', '</Suspense></CaseStudyBoundary>}</ScrollChoreography>');
+await writeFile('src/App.tsx', app);
+let css = await readFile('src/styles.css', 'utf8');
+css += '\n.case-top { position: sticky; top: 0; z-index: var(--z-local); background: var(--paper); padding-block: 10px; }\n.error-close { margin-top: 15px; padding: 10px 16px; border: 1px solid currentColor; border-radius: var(--radius-pill); }\n';
+await writeFile('src/styles.css', css);
+let docs = await readFile('ARCHITECTURE.md', 'utf8');
+docs += '\n## Original-site audit\n\nThe starting page used a near-black background (`#0D0E15`), royal-blue ambient video, Inter/Geist Mono, a wide uppercase wordmark, list/grid project switching, and a custom follower preview. Its six project drawers were driven by a plain-JavaScript object. The redesign retires the autoplay hero and perpetual pointer loop, preserves the anchor destinations and project topics, and keeps contact destinations intact. The old README referenced unrelated projects and awards; it has been replaced. Project SVG copies have malformed ampersands repaired, and unsupported recovery-impact text has been removed from the displayed concept art; the original assets remain untouched.\n\nVisual case studies additionally use a two-plane lookbook: the foreground page travels `80px` to `-60px`, rotates `9deg` to `-4deg`, and turns `-14deg` to `4deg` on its Y axis with `.45s` scrub. The back page travels more slowly with `.8s` scrub. Case-study image planes use `.7s` scrub. All nested timelines use the dialog as their scroller and are destroyed when it closes.\n';
+await writeFile('ARCHITECTURE.md', docs);

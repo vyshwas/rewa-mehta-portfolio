@@ -1,0 +1,50 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" rx="24" fill="#0C0B10"/>
+  <defs>
+    <radialGradient id="mg-glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#043bd6" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#7c3aed" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#0C0B10" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#mg-glow)"/>
+
+  <!-- Canvas Frame -->
+  <rect x="120" y="90" width="960" height="620" rx="20" fill="#13121A" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+
+  <!-- Artistic Central Silhouette Motif (Malena Inspired) -->
+  <g transform="translate(600, 360)">
+    <!-- Aura of Gazes -->
+    <ellipse cx="0" cy="-20" rx="220" ry="160" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+    <ellipse cx="0" cy="-20" rx="160" ry="110" fill="none" stroke="#043bd6" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Stylized Eye Motif representing the Gaze -->
+    <path d="M -120 -20 Q 0 -90 120 -20 Q 0 50 -120 -20 Z" fill="none" stroke="#ffffff" stroke-width="3"/>
+    <circle cx="0" cy="-20" r="30" fill="#043bd6"/>
+    <circle cx="0" cy="-20" r="14" fill="#ffffff"/>
+
+    <!-- Symbolic Sticky Notes (Erasing Identity) -->
+    <g transform="translate(-160, 40) rotate(-6)">
+      <rect x="0" y="0" width="100" height="90" rx="4" fill="#fef08a" stroke="#eab308" filter="drop-shadow(0 8px 16px rgba(0,0,0,0.5))"/>
+      <text x="12" y="30" fill="#713f12" font-family="sans-serif" font-size="10" font-weight="700">"SMILE MORE"</text>
+      <text x="12" y="55" fill="#854d0e" font-family="sans-serif" font-size="8">Expectation #1</text>
+    </g>
+
+    <g transform="translate(70, 60) rotate(8)">
+      <rect x="0" y="0" width="110" height="95" rx="4" fill="#fbcfe8" stroke="#f43f5e" filter="drop-shadow(0 8px 16px rgba(0,0,0,0.5))"/>
+      <text x="12" y="32" fill="#881337" font-family="sans-serif" font-size="10" font-weight="700">"BE DELICATE"</text>
+      <text x="12" y="58" fill="#9f1239" font-family="sans-serif" font-size="8">Norm #4</text>
+    </g>
+
+    <g transform="translate(-40, 110) rotate(-3)">
+      <rect x="0" y="0" width="120" height="85" rx="4" fill="#e0e7ff" stroke="#6366f1" filter="drop-shadow(0 8px 16px rgba(0,0,0,0.5))"/>
+      <text x="12" y="30" fill="#312e81" font-family="sans-serif" font-size="10" font-weight="700">"NOT TOO AMBITIOUS"</text>
+      <text x="12" y="55" fill="#3730a3" font-family="sans-serif" font-size="8">Conditioning</text>
+    </g>
+  </g>
+
+  <!-- Typography Caption -->
+  <text x="160" y="150" fill="rgba(255,255,255,0.4)" font-family="system-ui, sans-serif" font-size="11" letter-spacing="2">VISUAL COMMUNICATION // BEHANCE SHOWCASE</text>
+  <text x="160" y="190" fill="#ffffff" font-family="system-ui, sans-serif" font-size="24" font-weight="700">Gender Norms & The Male Gaze</text>
+  <text x="160" y="650" fill="rgba(255,255,255,0.6)" font-family="system-ui, sans-serif" font-size="13">Conceptual critique exploring visual metaphors, societal conditioning, and female autonomy. Inspired by Malèna (2000).</text>
+</svg>

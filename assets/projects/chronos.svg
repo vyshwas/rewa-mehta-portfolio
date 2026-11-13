@@ -1,0 +1,49 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" rx="24" fill="#08090D"/>
+  <defs>
+    <radialGradient id="c-glow" cx="50%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#043bd6" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#08090D" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#c-glow)"/>
+
+  <!-- Dial Outer Case -->
+  <g transform="translate(600, 400)">
+    <circle cx="0" cy="0" r="280" fill="#10121a" stroke="#25293d" stroke-width="3"/>
+    <circle cx="0" cy="0" r="260" fill="#0c0e14" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+    <!-- Hour Markers -->
+    <g stroke="rgba(255,255,255,0.6)" stroke-width="2">
+      <line x1="0" y1="-250" x2="0" y2="-230"/>
+      <line x1="0" y1="250" x2="0" y2="230"/>
+      <line x1="-250" y1="0" x2="-230" y2="0"/>
+      <line x1="250" y1="0" x2="230" y2="0"/>
+      <line x1="-177" y1="-177" x2="-162" y2="-162"/>
+      <line x1="177" y1="-177" x2="162" y2="-162"/>
+      <line x1="-177" y1="177" x2="-162" y2="162"/>
+      <line x1="177" y1="177" x2="162" y2="162"/>
+    </g>
+
+    <!-- Skeleton Gearwork Silhouette -->
+    <circle cx="-60" cy="-40" r="90" fill="none" stroke="#043bd6" stroke-width="2" opacity="0.6"/>
+    <circle cx="70" cy="60" r="110" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="8 8"/>
+    <circle cx="-50" cy="80" r="60" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.4"/>
+
+    <!-- Tourbillon Cage -->
+    <circle cx="0" cy="120" r="55" fill="#141724" stroke="#043bd6" stroke-width="2"/>
+    <rect x="-4" y="90" width="8" height="60" rx="4" fill="#043bd6"/>
+    <rect x="-30" y="116" width="60" height="8" rx="4" fill="#ffffff" opacity="0.8"/>
+
+    <!-- Watch Hands -->
+    <!-- Hour Hand -->
+    <polygon points="-8,0 0,-130 8,0 0,25" fill="#ffffff" opacity="0.9"/>
+    <!-- Minute Hand -->
+    <polygon points="-5,0 0,-210 5,0 0,35" fill="#043bd6"/>
+    <!-- Center Pin -->
+    <circle cx="0" cy="0" r="12" fill="#10121a" stroke="#ffffff" stroke-width="2.5"/>
+
+    <text x="0" y="-120" fill="rgba(255,255,255,0.8)" font-family="system-ui, serif" font-size="16" letter-spacing="6" text-anchor="middle">CHRONOS</text>
+    <text x="0" y="-98" fill="#043bd6" font-family="system-ui, sans-serif" font-size="9" letter-spacing="3" text-anchor="middle">GENÈVE · 3D REALTIME</text>
+  </g>
+</svg>

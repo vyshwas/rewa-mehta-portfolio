@@ -1,0 +1,16 @@
+import { chromium } from '@playwright/test';
+const browser = await chromium.launch({ channel: 'chrome' });
+const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+page.on('console', m => console.log(m.text()));
+await page.goto('http://127.0.0.1:5173');
+await page.evaluate(() => document.fonts.ready);
+await page.evaluate(() => { const el = document.querySelector('.type-stage'); new MutationObserver(() => console.log('STATE', el.getAttribute('data-locked'), 'scroll', window.scrollY)).observe(el, { attributes: true, attributeFilter: ['data-locked'] }); });
+await page.mouse.wheel(0, 300);
+await page.waitForTimeout(1800);
+await page.getByRole('link', { name: 'Rewa Mehta home' }).click();
+console.log('after home', await page.evaluate(() => window.scrollY));
+await page.getByRole('button', { name: 'Scatter the type' }).click();
+console.log('after click', await page.evaluate(() => window.scrollY));
+await page.waitForTimeout(1800);
+console.log('end', await page.evaluate(() => ({ y: scrollY, state: document.querySelector('.type-stage').dataset.locked })));
+await browser.close();

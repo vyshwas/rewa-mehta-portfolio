@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production build
+dist/
+
+# Testing & Verification
+.verification/
+test-results/
+playwright-report/
+*.tsbuildinfo
+
+# Screenshots & Scratch assets
+screenshot-*.png
+legacy/
+.impeccable/
+capture.cjs
+scrape_behance.cjs
+server.ps1
+script.js
+style.css
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+*.local
+.vscode/
+.idea/

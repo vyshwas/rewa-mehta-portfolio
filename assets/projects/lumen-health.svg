@@ -1,0 +1,48 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" rx="24" fill="#07090F"/>
+  <defs>
+    <radialGradient id="l-glow" cx="40%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#043bd6" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#0284c7" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#07090F" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#l-glow)"/>
+
+  <!-- Clinical Dashboard Frame -->
+  <rect x="80" y="80" width="1040" height="640" rx="20" fill="#0E111A" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+
+  <!-- Top Bar -->
+  <rect x="80" y="80" width="1040" height="64" rx="20" fill="rgba(255,255,255,0.02)"/>
+  <circle cx="120" cy="112" r="8" fill="#043bd6"/>
+  <text x="140" y="117" fill="#ffffff" font-family="system-ui, sans-serif" font-size="14" font-weight="700" letter-spacing="1">LUMEN HEALTH // CLINICAL BIOMARKER TELEMETRY</text>
+  <text x="960" y="117" fill="#34d399" font-family="system-ui, sans-serif" font-size="12" font-weight="600">● LIVE MONITORING</text>
+
+  <!-- Left Patient Summary Card -->
+  <rect x="110" y="170" width="280" height="520" rx="16" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="135" y="210" fill="rgba(255,255,255,0.4)" font-family="system-ui, sans-serif" font-size="11" letter-spacing="1">COHORT TELEMETRY</text>
+  <text x="135" y="245" fill="#ffffff" font-family="system-ui, sans-serif" font-size="22" font-weight="700">Patient CX-904</text>
+  <rect x="135" y="270" width="110" height="24" rx="12" fill="rgba(16,185,129,0.2)" stroke="#10b981"/>
+  <text x="150" y="286" fill="#6ee7b7" font-family="system-ui, sans-serif" font-size="11" font-weight="600">STABLE VITAL</text>
+
+  <text x="135" y="340" fill="rgba(255,255,255,0.5)" font-family="system-ui, sans-serif" font-size="12">Cellular Uptake Rate</text>
+  <text x="135" y="375" fill="#60a5fa" font-family="system-ui, sans-serif" font-size="28" font-weight="700">94.2%</text>
+
+  <text x="135" y="440" fill="rgba(255,255,255,0.5)" font-family="system-ui, sans-serif" font-size="12">Therapy Response Score</text>
+  <text x="135" y="475" fill="#34d399" font-family="system-ui, sans-serif" font-size="28" font-weight="700">+3.8 pts</text>
+
+  <!-- Main Central Telemetry Heatmap & Timeline -->
+  <rect x="420" y="170" width="670" height="340" rx="16" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)"/>
+  <text x="450" y="210" fill="rgba(255,255,255,0.5)" font-family="system-ui, sans-serif" font-size="12" letter-spacing="1">REAL-TIME MOLECULAR ACTIVITY STREAM</text>
+
+  <!-- Dynamic ECG / Biomarker Curve -->
+  <path d="M 450 360 L 520 360 L 540 310 L 560 410 L 580 340 L 600 360 L 680 360 L 700 290 L 720 430 L 740 330 L 760 360 L 880 360 L 900 300 L 920 400 L 940 360 L 1050 360" fill="none" stroke="#043bd6" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- Cellular Activity Matrix Grid -->
+  <g transform="translate(420, 540)">
+    <rect x="0" y="0" width="670" height="150" rx="16" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.06)"/>
+    <text x="30" y="35" fill="rgba(255,255,255,0.5)" font-family="system-ui, sans-serif" font-size="11" letter-spacing="1">HEURISTIC CLINICAL ACCURACY</text>
+    <text x="30" y="75" fill="#ffffff" font-family="system-ui, sans-serif" font-size="32" font-weight="700">99.7%</text>
+    <text x="30" y="105" fill="rgba(255,255,255,0.4)" font-family="system-ui, sans-serif" font-size="12">Validated against 18,400+ clinical trial datapoints across 4 medical centers</text>
+  </g>
+</svg>

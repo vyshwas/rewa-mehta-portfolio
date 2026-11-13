@@ -1,0 +1,47 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" rx="24" fill="#080A10"/>
+  <defs>
+    <radialGradient id="hc-glow" cx="60%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#043bd6" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#080A10" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#hc-glow)"/>
+
+  <!-- Infographic Canvas -->
+  <rect x="100" y="90" width="1000" height="620" rx="20" fill="#0F121C" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+
+  <text x="150" y="150" fill="rgba(255,255,255,0.5)" font-family="system-ui, sans-serif" font-size="11" letter-spacing="2">HEALTHCARE ECOSYSTEM MAPPING</text>
+  <text x="150" y="190" fill="#ffffff" font-family="system-ui, sans-serif" font-size="26" font-weight="700">Redesigning Care: For Better Health</text>
+
+  <!-- 3 Stage Journey Map: Primary Care -> Secondary Intervention -> System Followup -->
+  <g transform="translate(150, 240)">
+    <!-- Stage 1 -->
+    <rect x="0" y="0" width="270" height="380" rx="14" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)"/>
+    <text x="25" y="40" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="12" font-weight="600">01 / PRIMARY LEVEL</text>
+    <text x="25" y="75" fill="#ffffff" font-family="system-ui, sans-serif" font-size="16" font-weight="600">Initial Symptoms & Triage</text>
+    <text x="25" y="110" fill="rgba(255,255,255,0.6)" font-family="system-ui, sans-serif" font-size="12" line-height="1.5">Telemedicine friction, diagnostic delay, and fragmented local clinic records.</text>
+    <rect x="25" y="290" width="220" height="50" rx="8" fill="rgba(239,68,68,0.15)" stroke="#ef4444"/>
+    <text x="40" y="320" fill="#fca5a5" font-family="system-ui, sans-serif" font-size="11" font-weight="500">Pain Point: High Cognitive Dropoff</text>
+  </g>
+
+  <g transform="translate(460, 240)">
+    <!-- Stage 2 -->
+    <rect x="0" y="0" width="270" height="380" rx="14" fill="rgba(255,255,255,0.02)" stroke="#043bd6" stroke-width="1.5"/>
+    <text x="25" y="40" fill="#93c5fd" font-family="system-ui, sans-serif" font-size="12" font-weight="600">02 / SECONDARY LEVEL</text>
+    <text x="25" y="75" fill="#ffffff" font-family="system-ui, sans-serif" font-size="16" font-weight="600">Hospital Inpatient UX</text>
+    <text x="25" y="110" fill="rgba(255,255,255,0.6)" font-family="system-ui, sans-serif" font-size="12" line-height="1.5">Streamlined nurse-patient handoffs, unified telemetry cards, and real-time bedside charts.</text>
+    <rect x="25" y="290" width="220" height="50" rx="8" fill="rgba(4,59,214,0.3)" stroke="#043bd6"/>
+    <text x="40" y="320" fill="#bfdbfe" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Intervention: Centralized Hub</text>
+  </g>
+
+  <g transform="translate(770, 240)">
+    <!-- Stage 3 -->
+    <rect x="0" y="0" width="270" height="380" rx="14" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)"/>
+    <text x="25" y="40" fill="#34d399" font-family="system-ui, sans-serif" font-size="12" font-weight="600">03 / POST-CARE</text>
+    <text x="25" y="75" fill="#ffffff" font-family="system-ui, sans-serif" font-size="16" font-weight="600">Remote Recovery Portals</text>
+    <text x="25" y="110" fill="rgba(255,255,255,0.6)" font-family="system-ui, sans-serif" font-size="12" line-height="1.5">Automated medication reminders, patient recovery logging, and caregiver sync.</text>
+    <rect x="25" y="290" width="220" height="50" rx="8" fill="rgba(16,185,129,0.15)" stroke="#10b981"/>
+    <text x="40" y="320" fill="#6ee7b7" font-family="system-ui, sans-serif" font-size="11" font-weight="500">Outcome: +68% Compliance</text>
+  </g>
+</svg>
