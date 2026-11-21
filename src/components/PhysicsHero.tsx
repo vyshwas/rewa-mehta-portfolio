@@ -5,6 +5,7 @@ import type Matter from 'matter-js';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useMotion } from '../motion';
+import { asset } from '../data';
 
 type Glyph = { el: HTMLElement; body: Matter.Body; home: Matter.Vector; anchor: Matter.Constraint; width: number; height: number };
 
@@ -150,7 +151,7 @@ export default function PhysicsHero() {
       <div className="hero-manifesto"><h2>I make complicated<br />things feel <em>obvious.</em></h2><a className="text-link" href="#work">See the work <ArrowDownRight size={22} /></a></div>
       <div className="hero-note"><span className="small-label">The short version</span><p>I’m Rewa. I combine field research, systems thinking, and visual precision to design products people can understand under pressure.</p><span className="note-qualification">M.Des · NIFT New Delhi</span></div>
       <a href="#work" className="hero-preview" aria-label="Explore PelvicAI Health and selected projects">
-        <div className="preview-paper paper-back"></div><div className="preview-paper paper-front"><img src="/assets/projects/pelvic-care.svg" alt="PelvicAI Health concept illustration" width="400" height="300" fetchPriority="high" /></div>
+        <div className="preview-paper paper-back"></div><div className="preview-paper paper-front"><img src={asset("assets/projects/pelvic-care.svg")} alt="PelvicAI Health concept illustration" width="400" height="300" fetchPriority="high" /></div>
         <span className="preview-link">Featured: PelvicAI Health <ArrowUpRight size={16} /></span>
       </a>
     </div>

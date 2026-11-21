@@ -1,3 +1,4 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-export default defineConfig({ plugins: [react()], server: { port: 5186, strictPort: true } });
+// VITE_BASE is set by the deploy workflow: "/" for a user site (<name>.github.io), "/<repo>/" otherwise.
+export default defineConfig({ base: process.env.VITE_BASE || '/', plugins: [react()], server: { port: 5186, strictPort: true } });

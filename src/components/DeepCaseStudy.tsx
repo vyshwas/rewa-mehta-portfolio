@@ -1,5 +1,5 @@
 import { ArrowUpRight } from '@phosphor-icons/react';
-import { featuredProject, type Project } from '../data';
+import { featuredProject, asset, type Project } from '../data';
 import { Opener, SplitTitle } from './Field';
 
 export default function DeepCaseStudy({ open }: { open: (project: Project) => void }) {
@@ -18,7 +18,7 @@ export default function DeepCaseStudy({ open }: { open: (project: Project) => vo
         <figure className="feature-frame">
           <img
             className="feature-img"
-            src="/assets/projects/behance/neonatal-macbook.webp"
+            src={asset("assets/projects/behance/neonatal-macbook.webp")}
             alt="The neonatalcare doctor dashboard on a laptop: infant cards with vitals, a daily summary and an alert panel"
             loading="eager"
           />

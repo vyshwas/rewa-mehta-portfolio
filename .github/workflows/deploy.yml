@@ -34,7 +34,10 @@ jobs:
         run: npm ci
 
       - name: Build project
-        run: npm run build
+        run: |
+          REPO="${GITHUB_REPOSITORY#*/}"
+          case "$REPO" in *.github.io) export VITE_BASE=/ ;; *) export VITE_BASE="/$REPO/" ;; esac
+          npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
