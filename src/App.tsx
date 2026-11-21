@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowUp, Copy, Check } from '@phosphor-icons/react';
 import { MotionProvider, ScrollChoreography, useMotion } from './motion';
 import Atmosphere from './components/Atmosphere';
+import PondWater from './components/PondWater';
 import Hero from './components/PondHero';
 import Manifesto from './components/Manifesto';
 import DeepCaseStudy from './components/DeepCaseStudy';
@@ -26,7 +27,7 @@ function SiteNav() {
   }, []);
   return (
     <header className="site-nav" data-scrolled={scrolled}>
-      <a href="#hero" className="nav-brand" aria-label="Rewa Mehta, back to top"><span className="nav-mark monogram" aria-hidden="true">R<em>m</em></span><span className="nav-name">Rewa Mehta</span></a>
+      <a href="#hero" className="nav-brand" aria-label="Rewa Mehta, back to top"><span className="logo-text logo-full" aria-hidden="true">rewa mehta</span><span className="logo-text logo-short" aria-hidden="true">rm</span><i className="logo-cursor" aria-hidden="true" /></a>
       <nav className="nav-links" aria-label="Main navigation">
         {links.map(([label, href]) => <a key={href} href={href}><span>{label}</span><i aria-hidden="true" /></a>)}
       </nav>
@@ -125,6 +126,7 @@ export default function App() {
     <MotionProvider>
       <ScrollChoreography>
         <Atmosphere />
+        <PondWater />
         <PointerFx />
         <div className="site-wrapper">
           <SiteNav />

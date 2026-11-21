@@ -82,6 +82,10 @@ export class Pond {
   pointer = { x: 0, y: 0, speed: 0, active: false };
 
   private seededBase = 0; private seededCount = 0;
+  /** withKoi=false gives a pond with water only: ripples and a cursor wake, no fish. */
+  constructor(private withKoi = true) {}
+  /** A single ripple, e.g. rain while scrolling. */
+  splash(x: number, y: number, strength = 0.25) { this.ripples.push({ x, y, born: this.time, strength }); }
   private layout(w: number, h: number) {
     return { base: clamp(0.5 * Math.min(w, h), 170, 400), count: clamp(Math.round((w * h) / 330000), 3, 5) };
   }
@@ -93,6 +97,7 @@ export class Pond {
   }
 
   private seed() {
+    if (!this.withKoi) { this.koi = []; this.seededBase = 1; this.seededCount = 0; return; }
     const { width: w, height: h } = this;
     const { base, count } = this.layout(w, h);
     this.seededBase = base; this.seededCount = count;

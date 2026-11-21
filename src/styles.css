@@ -65,7 +65,7 @@ em { font-style: italic; }
   font-size: var(--fs-display);
   font-weight: 500;
   line-height: 0.9;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.02em;
   color: var(--fg);
 }
 .headline {
@@ -73,7 +73,7 @@ em { font-style: italic; }
   font-size: var(--fs-headline);
   font-weight: 500;
   line-height: 1.02;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   color: var(--fg);
 }
 .title {
@@ -81,7 +81,7 @@ em { font-style: italic; }
   font-size: var(--fs-title);
   font-weight: 500;
   line-height: 1.05;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 /* The serif italic is the voice: one accent word per title. */
 .display em, .headline em, .title em, .split em, .work-title em, .contact-title em, .manifesto-text em, .choice-art em {
@@ -97,7 +97,7 @@ em { font-style: italic; }
 .rise { display: inline-block; }
 
 /* "Word ——— Word" */
-.split { display: flex; align-items: center; gap: 0.14em; font-family: var(--display); font-weight: 500; letter-spacing: -0.06em; line-height: 0.86; }
+.split { display: flex; align-items: center; gap: 0.14em; font-family: var(--display); font-weight: 500; letter-spacing: -0.02em; line-height: 0.86; }
 .split-rule { flex: 1; min-width: 8vw; height: 1px; margin-top: 0.06em; background: var(--fg-3); transform-origin: center; }
 
 /* Chapter opener: a full-width rule drawn across, a large italic numeral, the chapter name set big.
@@ -127,7 +127,7 @@ em { font-style: italic; }
   font-size: var(--fs-display);
   font-weight: 500;
   line-height: 0.9;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.02em;
 }
 .opener-name em { font-family: var(--serif); font-weight: 400; letter-spacing: -0.01em; font-size: 1.08em; }
 .opener-note { grid-column: 2 / -1; margin-top: 28px; color: var(--fg-3); }
@@ -135,7 +135,7 @@ em { font-style: italic; }
 /* Letters that swell toward the pointer (src/fx.tsx). Never fake a bold. */
 .flex-ch { font-synthesis: none; }
 
-.monogram { font-family: var(--display); font-weight: 500; letter-spacing: -0.04em; }
+.monogram { font-family: var(--display); font-weight: 500; letter-spacing: -0.02em; }
 .monogram em { font-family: var(--serif); font-weight: 400; letter-spacing: 0; }
 
 /* ==========================================================================
@@ -320,7 +320,7 @@ html[data-motion='on'] .status-pulse { animation: pulse 2.6s ease-in-out infinit
 @keyframes pulse { 50% { opacity: 0.4; transform: scale(0.8); } }
 
 .hero-copy { grid-column: 2 / -1; align-self: center; padding-inline: var(--col-pad); }
-.hero-statement { max-width: 21em; font-family: var(--display); font-size: var(--fs-statement); font-weight: 400; line-height: 1.12; letter-spacing: -0.035em; color: var(--fg); text-wrap: pretty; }
+.hero-statement { max-width: 21em; font-family: var(--display); font-size: var(--fs-statement); font-weight: 400; line-height: 1.12; letter-spacing: -0.02em; color: var(--fg); text-wrap: pretty; }
 .hero-statement em { font-family: var(--serif); font-weight: 400; letter-spacing: -0.01em; font-size: 1.1em; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
 
@@ -341,7 +341,7 @@ html[data-motion='on'] .status-pulse { animation: pulse 2.6s ease-in-out infinit
   font-size: var(--fs-headline);
   font-weight: 500;
   line-height: 1.07;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   color: var(--fg);
 }
 .manifesto-text em { font-size: 1.1em; }
@@ -398,7 +398,7 @@ html[data-motion='on'] .status-pulse { animation: pulse 2.6s ease-in-out infinit
   font-size: var(--fs-index);
   font-weight: 500;
   line-height: 0.95;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.02em;
   transition: transform 0.7s var(--ease);
 }
 .work-meta { grid-column: 4; color: var(--fg-3); padding-right: calc(var(--col-pad) + 40px); }
@@ -449,7 +449,7 @@ html[data-motion='on'] .status-pulse { animation: pulse 2.6s ease-in-out infinit
   font-family: var(--display);
   font-size: var(--fs-plate);
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   line-height: 0.98;
   color: var(--paper);
 }
@@ -511,7 +511,7 @@ html[data-motion='on'] .status-pulse { animation: pulse 2.6s ease-in-out infinit
 .trajectory li { display: grid; grid-template-columns: repeat(var(--cols), 1fr); align-items: baseline; padding: 30px 0; border-bottom: 1px solid var(--line); }
 .trajectory li > * { padding-inline: var(--col-pad); }
 .trajectory .mono { color: var(--fg-3); }
-.trajectory strong { grid-column: 2 / span 2; font-family: var(--display); font-size: var(--fs-title); font-weight: 500; letter-spacing: -0.03em; line-height: 1.1; }
+.trajectory strong { grid-column: 2 / span 2; font-family: var(--display); font-size: var(--fs-title); font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; }
 .trajectory li > span:last-child { color: var(--fg-2); }
 .about-cta { margin-top: 56px; margin-left: calc(100% / var(--cols) + var(--col-pad)); }
 
@@ -521,7 +521,7 @@ html[data-motion='on'] .status-pulse { animation: pulse 2.6s ease-in-out infinit
 .contact { min-height: 100svh; }
 .contact-stage { display: grid; grid-template-columns: repeat(var(--cols), 1fr); align-items: start; }
 .contact-stage > * { padding-inline: var(--col-pad); }
-.contact-title { grid-column: 1 / -1; font-family: var(--display); font-size: var(--fs-name); font-weight: 500; line-height: 0.86; letter-spacing: -0.06em; }
+.contact-title { grid-column: 1 / -1; font-family: var(--display); font-size: var(--fs-name); font-weight: 500; line-height: 0.86; letter-spacing: -0.02em; }
 .contact-email {
   grid-column: 1 / -1;
   justify-self: start;
@@ -533,7 +533,7 @@ html[data-motion='on'] .status-pulse { animation: pulse 2.6s ease-in-out infinit
   font-family: var(--display);
   font-size: var(--fs-headline);
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   background: linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat;
   transition: color 0.4s var(--ease);
@@ -608,7 +608,7 @@ html[data-motion='on'] .case-dialog[open] { animation: dialog-in 0.8s var(--ease
   color: var(--fg);
 }
 .close-button:hover { border-color: var(--fg-2); }
-#case-title { margin-top: clamp(48px, 9vh, 104px); font-family: var(--display); font-size: var(--fs-index); font-weight: 500; line-height: 0.92; letter-spacing: -0.055em; }
+#case-title { margin-top: clamp(48px, 9vh, 104px); font-family: var(--display); font-size: var(--fs-index); font-weight: 500; line-height: 0.92; letter-spacing: -0.02em; }
 .case-deck { max-width: 32ch; margin-top: 22px; font-family: var(--serif); font-style: italic; font-size: var(--fs-deck); line-height: 1.2; color: var(--fg-2); }
 .case-art-stage { margin-top: clamp(48px, 8vh, 80px); aspect-ratio: 3 / 2; border-radius: var(--radius-md); overflow: hidden; background: var(--stage); }
 .case-image { width: 100%; height: 100%; object-fit: cover; }
@@ -693,7 +693,7 @@ html[data-motion='on'] .case-dialog[open] { animation: dialog-in 0.8s var(--ease
 .case-section-item + .case-section-item { margin-top: clamp(96px, 16vh, 160px); }
 .case-section-header { display: flex; align-items: baseline; gap: clamp(16px, 2vw, 28px); }
 .section-num { font-family: var(--serif); font-style: italic; font-size: var(--fs-headline); line-height: 0.9; color: var(--accent); }
-.case-section-header h3 { font-family: var(--display); font-size: var(--fs-title); font-weight: 500; line-height: 1.1; letter-spacing: -0.03em; }
+.case-section-header h3 { font-family: var(--display); font-size: var(--fs-title); font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; }
 .section-text { max-width: 60ch; margin: 18px 0 0; color: var(--fg-2); }
 .section-figure { margin-top: clamp(28px, 5vh, 48px); border-radius: var(--radius-md); overflow: hidden; background: var(--stage); border: 1px solid var(--line); }
 .section-figure img { width: 100%; }
@@ -815,3 +815,65 @@ html[data-motion='on'] .case-dialog[open] { animation: dialog-in 0.8s var(--ease
 @media (max-width: 1023px) { .pond-hero { --pond-pad: 24px; } .pond-inner { gap: 28px; padding-top: 104px; } .pond-copy { font-size: 14px; line-height: 1.6; } .pond-copy p { margin-top: 12px; } .pond-quote { font-size: 13px; } }
 @media (max-height: 720px) { .pond-inner { gap: 20px; padding-bottom: 40px; } }
 @media (prefers-reduced-motion: reduce) { .pond-cursor { animation: none; } .pond-copy { animation: none; } }
+
+/* =====================================================================
+   Unified "pond" theme. The hero set the language; this carries it to
+   every section: one monospace voice, pond-black water instead of the
+   blue glow, ember as the only accent, small square-cornered tiles.
+   ===================================================================== */
+:root {
+  --display: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
+  --serif: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
+  --sans: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
+  --accent: var(--ember-soft);
+  /* Ember is the only accent: the old cobalt UI colours (focus, hover, progress bar) become ember. Cobalt now lives only in the water. */
+  --cobalt: var(--ember);
+  --cobalt-deep: #c2410c;
+  --cobalt-soft: var(--ember-soft);
+
+  /* Mono letters are wider than the old sans, so the big sizes come down to keep the same measure. */
+  --fs-name: clamp(48px, 10.2vw, 190px);
+  --fs-wordmark: clamp(44px, 9.6vw, 180px);
+  --fs-display: clamp(38px, 6.2vw, 110px);
+  --fs-index: clamp(30px, 4.6vw, 80px);
+  --fs-headline: clamp(24px, 3.3vw, 54px);
+  --fs-title: clamp(19px, 1.8vw, 28px);
+  --fs-subtitle: clamp(16px, 1.3vw, 20px);
+  --fs-deck: clamp(18px, 1.5vw, 24px);
+  --fs-statement: clamp(21px, 2.2vw, 38px);
+  --fs-numeral: clamp(40px, 5.6vw, 100px);
+  --fs-plate: clamp(21px, 2.6vw, 42px);
+  --fs-lead: clamp(15px, 1.15vw, 18px);
+  --fs-body: 15px;
+
+  /* Square, tile-like corners, like the character cells the pond is drawn from. */
+  --radius-pill: 6px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+}
+
+/* The blue light is retired; the page is pond-black and the glyph water (PondWater) lives on it. */
+.light { display: none !important; }
+.pond-water { position: fixed; inset: 0; z-index: var(--z-light); pointer-events: none; }
+html[data-motion='off'] .pond-water { display: none; }
+.grain { opacity: 0.35; }
+
+/* No italics: the serif accents become ember words. */
+em, .case-deck, .team-note, .section-num, .choice-art span:last-child { font-style: normal; }
+em { color: var(--ember-soft); }
+.opener-num { font-style: normal; color: var(--ember-soft); }
+.team-note { color: var(--ember-soft); }
+
+/* Logotype: lowercase mono with the same blinking ember cursor as the hero quote. */
+.nav-brand { gap: 0; }
+.logo-text { font-family: var(--mono); font-size: 15px; font-weight: 500; letter-spacing: 0.01em; text-transform: lowercase; }
+.logo-short { display: none; }
+.logo-cursor { display: inline-block; width: 0.55em; height: 1.05em; margin-left: 5px; transform: translateY(0.12em); background: var(--ember); animation: pond-blink 1.1s step-end infinite; }
+.nav-brand:hover .logo-cursor, .nav-brand:focus-visible .logo-cursor { animation: none; }
+html[data-motion='off'] .logo-cursor { animation: none; }
+@media (max-width: 700px) { .logo-full { display: none; } .logo-short { display: inline; } }
+@media (prefers-reduced-motion: reduce) { .logo-cursor { animation: none; } }
+
+/* Nav: lowercase, like the hero copy. */
+.nav-links a { text-transform: lowercase; }
