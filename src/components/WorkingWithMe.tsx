@@ -17,8 +17,8 @@ const values = [
 
 export default function WorkingWithMe() {
   return (
-    <section className="section method" id="working-with-me" data-light="sweep" data-chapter="03" data-chapter-name="Approach" aria-labelledby="method-title">
-      <Opener num="03" id="method-title" note="Four principles">Working <em>with me</em></Opener>
+    <section className="section method" id="working-with-me" data-light="sweep" data-chapter="02" data-chapter-name="Approach" aria-labelledby="method-title">
+      <Opener num="02" id="method-title" note="Four principles">Working <em>with me</em></Opener>
       <ol className="method-list">
         {values.map((value, index) => (
           <li className="method-col" key={value.title} data-reveal>

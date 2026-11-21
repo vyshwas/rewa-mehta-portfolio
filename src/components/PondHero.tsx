@@ -139,7 +139,7 @@ export default function PondHero() {
           <p>UI/UX design at <a href="#about">Akoode Technologies</a> (intern) and <a href="#about">Chitrankitt Ventures</a>. M.Des, UI/UX, <a href="#about">NIFT New Delhi</a>.</p>
           <p>Open to Q1/Q2 roles.</p>
           <p className="pond-links">
-            <a href="#featured-work">work <ArrowDown size={12} aria-hidden="true" /></a>
+            <a href="#work">work <ArrowDown size={12} aria-hidden="true" /></a>
             <span aria-hidden="true"> / </span>
             <a href="#about">about</a>
             <span aria-hidden="true"> / </span>

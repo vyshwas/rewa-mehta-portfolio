@@ -52,11 +52,6 @@ function scenes(wide: boolean) {
     const path = word.querySelector('.scribble path');
     if (path) statement.fromTo(path, { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'power1.inOut', duration: 0.5 }, index * 0.1 + 0.05);
   });
-
-  // The featured frame opens from a window to the full field.
-  gsap.timeline({ scrollTrigger: { trigger: '.feature-frame', start: 'top 92%', end: 'top 18%', scrub: 0.8 } })
-    .fromTo('.feature-frame', { clipPath: 'inset(10% 18% 10% 18% round 28px)' }, { clipPath: 'inset(0% 0% 0% 0% round 16px)', ease: 'none' }, 0)
-    .fromTo('.feature-img', { scale: 1.3 }, { scale: 1, ease: 'none' }, 0);
 }
 
 export function ScrollChoreography({ children }: { children: ReactNode }) {

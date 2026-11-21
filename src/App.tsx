@@ -5,17 +5,15 @@ import Atmosphere from './components/Atmosphere';
 import PondWater from './components/PondWater';
 import Hero from './components/PondHero';
 import Manifesto from './components/Manifesto';
-import DeepCaseStudy from './components/DeepCaseStudy';
-import WorkIndex from './components/WorkIndex';
+import Work from './components/Work';
 import WorkingWithMe from './components/WorkingWithMe';
-import Playground from './components/Playground';
 import { Opener, Rise, SplitTitle } from './components/Field';
 import { email, type Project } from './data';
 import { FlexWord, usePointerFx } from './fx';
 import CaseStudyBoundary from './components/CaseStudyBoundary';
 const CaseStudy = lazy(() => import('./components/CaseStudy'));
 
-const links = [['Work', '#featured-work'], ['Approach', '#working-with-me'], ['About', '#about'], ['Contact', '#contact']] as const;
+const links = [['Work', '#work'], ['Approach', '#working-with-me'], ['About', '#about'], ['Contact', '#contact']] as const;
 
 function SiteNav() {
   const [scrolled, setScrolled] = useState(false);
@@ -44,8 +42,8 @@ const trajectory = [
 
 function About() {
   return (
-    <section className="section about" id="about" data-light="low" data-chapter="05" data-chapter-name="About" aria-labelledby="about-title">
-      <Opener num="05" id="about-title" note="New Delhi, India">About</Opener>
+    <section className="section about" id="about" data-light="low" data-chapter="03" data-chapter-name="About" aria-labelledby="about-title">
+      <Opener num="03" id="about-title" note="New Delhi, India">About</Opener>
       <div className="field-row about-copy">
         <p className="headline about-lead" data-reveal>From the laboratory to <em>interface architecture.</em></p>
         <p className="body about-body" data-reveal>
@@ -81,8 +79,8 @@ function Contact() {
   }, [copyState]);
 
   return (
-    <section id="contact" className="section contact" data-light="dawn" data-chapter="06" data-chapter-name="Contact" aria-labelledby="contact-heading">
-      <Opener num="06" id="contact-heading" note="Open to product design roles, Q1/Q2">Contact</Opener>
+    <section id="contact" className="section contact" data-light="dawn" data-chapter="04" data-chapter-name="Contact" aria-labelledby="contact-heading">
+      <Opener num="04" id="contact-heading" note="Open to product design roles, Q1/Q2">Contact</Opener>
       <div className="contact-stage">
         <p className="contact-title" data-rise><Rise><FlexWord text="Let's" /></Rise> <Rise><em>talk.</em></Rise></p>
         <a className="contact-email" href={'mailto:' + email} data-reveal>{email}<ArrowUpRight size={28} aria-hidden="true" /></a>
@@ -133,10 +131,8 @@ export default function App() {
           <main>
             <Hero />
             <Manifesto />
-            <DeepCaseStudy open={setProject} />
-            <WorkIndex open={setProject} />
+            <Work open={setProject} />
             <WorkingWithMe />
-            <Playground open={setProject} />
             <About />
             <Contact />
           </main>
