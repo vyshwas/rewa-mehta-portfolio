@@ -262,7 +262,9 @@ export class Pond {
     for (let i = 1; i < NODES; i++) {
       const px = n[(i - 1) * 2], py = n[(i - 1) * 2 + 1];
       let na = Math.atan2(n[2 * i + 1] - py, n[2 * i] - px);
-      na = a + clamp(angleDiff(a, na), -0.1, 0.1);
+      // The tail end is stiffer than the body, so it can't curl back on itself.
+      const bend = i >= NODES - 4 ? 0.05 : 0.1;
+      na = a + clamp(angleDiff(a, na), -bend, bend);
       n[2 * i] = px + Math.cos(na) * seg; n[2 * i + 1] = py + Math.sin(na) * seg;
       a = na;
     }
@@ -394,7 +396,8 @@ export class PondRenderer {
     out.s = s; out.v = dist * side; out.tx = tx; out.ty = ty; out.kind = 0; out.across = 0;
     if (body > 0 && dist <= body) { out.kind = 1; out.across = dist / body; return out; }
     if (s > 0.86) {
-      const u = (s - 0.86) / 0.14, tw = tailHalf(u, L, flare), notch = tw * 0.5 * smooth(0.6, 1, u);
+      const u = (s - 0.86) / 0.14, tw = tailHalf(u, L, flare), notch = tw * 0.7 * smooth(0.82, 1, u);
+      // Solid fan; the fork is only a small V cut at the very tip, so it never reads as a hollow loop.
       if (dist <= tw && dist >= notch) { out.kind = 2; out.across = dist / (tw || 1); return out; }
     }
     // Pectoral fins: broad rounded paddles just behind the head, held out to the side.
@@ -482,9 +485,10 @@ export class PondRenderer {
         // Tail and pectoral fins: lighter than the body, outlined so the shape still reads.
         const jitter = hash(c + ((time * 1.6) | 0), r, k.id);
         this.glyph[i] = (edge ? line : jitter < 0.5 ? '.' : ':').charCodeAt(0);
-        this.color[i] = this.pack(edge ? scale(PAL.fin, 1.1) : PAL.fin);
-        this.alpha[i] = depthA * (edge ? 0.85 : 0.55);
-        this.tile[i] = this.pack(PAL.fin); this.tileA[i] = depthA * (edge ? 0.1 : 0.18);
+        // A soft, evenly filled shape (edge barely brighter than the inside), so a fan never reads as a hollow ring.
+        this.color[i] = this.pack(edge ? scale(PAL.fin, 1.05) : PAL.fin);
+        this.alpha[i] = depthA * (edge ? 0.6 : 0.62);
+        this.tile[i] = this.pack(scale(PAL.fin, 0.8)); this.tileA[i] = depthA * (edge ? 0.26 : 0.3);
       }
     }
   }
