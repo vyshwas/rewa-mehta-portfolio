@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDown } from '@phosphor-icons/react';
-import { Room, RoomRenderer, type Box } from './room/engine';
+import { House, HouseRenderer, type Box } from './room/house';
 import { email } from '../data';
 import { useMotion } from '../motion';
 
@@ -28,7 +28,7 @@ function Quote() {
   );
 }
 
-// A quiet room seen from its edge, as a wallflower would: a cat plays on her own with a ball of yarn.
+// A cosy studio seen from high in a corner, as a wallflower would: a cat plays on her own with a ball of yarn.
 export default function RoomHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -37,9 +37,9 @@ export default function RoomHero() {
   useEffect(() => {
     const canvas = canvasRef.current, section = sectionRef.current;
     if (!canvas || !section) return;
-    const room = new Room();
-    let renderer: RoomRenderer;
-    try { renderer = new RoomRenderer(canvas); } catch { return; }
+    const room = new House();
+    let renderer: HouseRenderer;
+    try { renderer = new HouseRenderer(canvas); } catch { return; }
     let raf = 0, last = 0, acc = 0, frames = 0, visible = true, lastPtr = 0;
 
     const boxes = (): Box[] => {
@@ -57,24 +57,16 @@ export default function RoomHero() {
       }
       return merged;
     };
-    // The floor sits just above the text, so the cat always plays in the open part of the screen.
-    const floorFor = (bs: Box[], h: number) => {
-      const top = bs.length ? Math.min(...bs.map((b) => b.top)) : h * 0.7;
-      return Math.max(h * 0.3, Math.min(h * 0.76, top - 26));
-    };
     const layout = () => {
       const r = canvas.getBoundingClientRect();
       if (r.width < 1 || r.height < 1) return;
-      const bs = boxes();
       const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(4e6 / (r.width * r.height))));
-      room.setLayout(r.width, r.height, floorFor(bs, r.height));
       renderer.resize(r.width, r.height, dpr, room);
-      renderer.setDimBoxes(bs); room.avoid = bs;
+      refresh();
     };
     const refresh = () => {
-      const r = canvas.getBoundingClientRect(), bs = boxes();
-      if (Math.abs(floorFor(bs, r.height) - room.floorY) > 4) { layout(); return; }
-      renderer.setDimBoxes(bs); room.avoid = bs;
+      const bs = boxes();
+      renderer.setDimBoxes(bs); room.setAvoid(bs);
     };
     const drawStill = () => {
       if (room.time < 3) for (let i = 0; i < 182; i++) room.step(STEP);
