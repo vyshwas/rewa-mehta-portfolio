@@ -277,16 +277,17 @@ export class Pond {
 // ---------------------------------------------------------------- renderer
 
 const bodyWidth = (s: number, L: number) => {
-  // Half-width of the body at arc fraction s (0 = nose, 1 = tail tip).
-  if (s < 0 || s > 0.78) return 0;
-  const sh = Math.pow(Math.sin(Math.PI * clamp(s * 0.94 + 0.05, 0, 1)), 0.62);
-  return L * 0.118 * sh * (1 - 0.32 * s);
+  // Half-width of the body at arc fraction s (0 = nose, 1 = tail tip): rounded head, fullest at the shoulder, tapering to the tail stalk.
+  if (s < 0 || s > 0.8) return 0;
+  const head = Math.sqrt(clamp(s / 0.07, 0, 1));
+  const belly = Math.sin(Math.PI * clamp((s + 0.02) / 0.9, 0, 1));
+  return L * 0.132 * head * Math.pow(belly, 0.7) * (1 - 0.3 * s);
 };
-const tailWidth = (s: number, L: number, flare: number) => {
-  if (s < 0.7) return 0;
-  const u = (s - 0.7) / 0.3;
-  return L * (0.012 + 0.085 * Math.pow(Math.sin(Math.min(1, u * 1.1) * Math.PI * 0.62), 1.1) * flare) * (1 - 0.25 * u);
-};
+const tailHalf = (u: number, L: number, flare: number) =>
+  // u: 0..1 along the tail. Fans out, then tapers at the tips.
+  L * (0.014 + 0.115 * Math.pow(Math.sin(Math.min(1, u) * Math.PI * 0.5), 1.25)) * flare * (1 - 0.3 * smooth(0.85, 1, u));
+
+interface Probe { kind: 0 | 1 | 2 | 3; s: number; v: number; across: number; tx: number; ty: number }
 
 export class PondRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -306,7 +307,7 @@ export class PondRenderer {
 
   resize(w: number, h: number, dpr: number) {
     this.dpr = dpr;
-    this.cw = clamp(Math.round(w / 125), 8, 12);
+    this.cw = clamp(Math.round(w / 190), 7, 10);
     this.ch = this.cw + 2;
     this.cols = Math.ceil(w / this.cw); this.rows = Math.ceil(h / this.ch);
     this.ctx.canvas.width = Math.round(w * dpr); this.ctx.canvas.height = Math.round(h * dpr);
@@ -366,6 +367,34 @@ export class PondRenderer {
     ctx.globalAlpha = 1;
   }
 
+  private p1: Probe = { kind: 0, s: 0, v: 0, across: 0, tx: 1, ty: 0 };
+  private p2: Probe = { kind: 0, s: 0, v: 0, across: 0, tx: 1, ty: 0 };
+
+  /** Which part of the fish (if any) lies at this point. Writes into `out`. */
+  private probe(px: number, py: number, L: number, flare: number, time: number, id: number, out: Probe): Probe {
+    const { spine, arc } = this;
+    const total = arc[NODES - 1] || 1;
+    let best = Infinity, s = 0, side = 1, tx = 1, ty = 0;
+    for (let i = 0; i < NODES - 1; i++) {
+      const ax = spine[2 * i], ay = spine[2 * i + 1], ex = spine[2 * i + 2] - ax, ey = spine[2 * i + 3] - ay;
+      const l2 = ex * ex + ey * ey || 1, u = clamp(((px - ax) * ex + (py - ay) * ey) / l2, 0, 1);
+      const d2 = (px - ax - ex * u) ** 2 + (py - ay - ey * u) ** 2;
+      if (d2 < best) { best = d2; const len = Math.sqrt(l2); s = (arc[i] + u * len) / total; side = ex * (py - ay) - ey * (px - ax) >= 0 ? 1 : -1; tx = ex / len; ty = ey / len; }
+    }
+    const dist = Math.sqrt(best), body = bodyWidth(s, L);
+    out.s = s; out.v = dist * side; out.tx = tx; out.ty = ty; out.kind = 0; out.across = 0;
+    if (body > 0 && dist <= body) { out.kind = 1; out.across = dist / body; return out; }
+    if (s > 0.7) {
+      const u = (s - 0.7) / 0.3, tw = tailHalf(u, L, flare), notch = tw * 0.42 * smooth(0.55, 1, u);
+      if (dist <= tw && dist >= notch) { out.kind = 2; out.across = dist / (tw || 1); return out; }
+    }
+    if (s > 0.12 && s < 0.32) {
+      const f = (s - 0.12) / 0.2, reach = L * 0.13 * Math.pow(1 - f, 0.9) * (1 + 0.18 * Math.sin(time * 2.4 + id * 1.7 + side));
+      if (dist > body * 0.85 && dist <= body + reach) { out.kind = 3; out.across = (dist - body) / (reach || 1); return out; }
+    }
+    return out;
+  }
+
   private rasterize(k: Koi, time: number) {
     const { spine, arc, cw, ch, cols, rows } = this;
     const L = k.length, nodes = k.nodes;
@@ -380,7 +409,6 @@ export class PondRenderer {
     }
     arc[0] = 0;
     for (let i = 1; i < NODES; i++) arc[i] = arc[i - 1] + Math.hypot(spine[2 * i] - spine[2 * i - 2], spine[2 * i + 1] - spine[2 * i - 1]);
-    const total = arc[NODES - 1] || 1;
     const flare = 1 - 0.25 * k.beat + 0.18 * (1 - k.beat) * Math.sin(time * 2.4 + k.id);
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -390,56 +418,57 @@ export class PondRenderer {
     const r0 = Math.max(0, Math.floor((minY - pad) / ch)), r1 = Math.min(rows - 1, Math.floor((maxY + pad) / ch));
     if (c0 > c1 || r0 > r1) return;
 
-    const depthA = 0.45 + 0.55 * k.depth;
+    const depthA = 0.5 + 0.5 * k.depth;
     const sx = Math.round(0.07 * L * k.depth / cw) + 1, sy = Math.round(0.05 * L * k.depth / ch) + 1;
+    const ox = 0.42 * cw, oy = 0.42 * ch;
+    const A = this.p1, B = this.p2;
 
     for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
       const px = c * cw + cw / 2, py = r * ch + ch / 2;
-      // Nearest point on the spine.
-      let best = Infinity, s = 0, side = 1, bi = 0;
-      for (let i = 0; i < NODES - 1; i++) {
-        const ax = spine[2 * i], ay = spine[2 * i + 1], ex = spine[2 * i + 2] - ax, ey = spine[2 * i + 3] - ay;
-        const l2 = ex * ex + ey * ey || 1, u = clamp(((px - ax) * ex + (py - ay) * ey) / l2, 0, 1);
-        const d2 = (px - ax - ex * u) ** 2 + (py - ay - ey * u) ** 2;
-        if (d2 < best) { best = d2; s = (arc[i] + u * Math.sqrt(l2)) / total; side = ex * (py - ay) - ey * (px - ax) >= 0 ? 1 : -1; bi = i; }
+      this.probe(px, py, L, flare, time, k.id, A);
+      // Four corner samples find the silhouette edge, so the outline follows the real shape.
+      let inside = 0, cornerKind = 0;
+      for (let q = 0; q < 4; q++) {
+        this.probe(px + (q & 1 ? ox : -ox), py + (q & 2 ? oy : -oy), L, flare, time, k.id, B);
+        if (B.kind) { inside++; cornerKind = B.kind; }
       }
-      const dist = Math.sqrt(best);
-      const body = bodyWidth(s, L), tail = tailWidth(s, L, flare);
-      // Pectoral fins: a soft lobe either side of the shoulders.
-      const fx = s - 0.2, fin = Math.abs(fx) < 0.055 && dist > body * 0.8 && dist < body + 0.09 * L * (1 - Math.abs(fx) / 0.055) * (1 + 0.15 * Math.sin(time * 2.4 + k.id * 1.7 + side));
-      const inBody = dist <= body && body > 0;
-      const inTail = !inBody && tail > 0 && dist <= tail;
-      if (!inBody && !inTail && !fin) continue;
+      const centreIn = A.kind !== 0;
+      if (!centreIn && inside < 3) continue;
+      const edge = centreIn ? inside < 4 : true;
       const i = r * cols + c;
+      const aKind = centreIn ? A.kind : cornerKind || 1;
+      // Re-probe the centre for tangent data when the centre is outside the shape.
+      const horiz = Math.abs(A.ty) < 0.38, vert = Math.abs(A.tx) < 0.38;
+      const line = horiz ? '-' : vert ? '|' : A.tx * A.ty > 0 ? '\\' : '/';
 
-      if (inBody) {
-        const across = clamp(dist / body, 0, 1);
-        const lighting = clamp(0.3 + 0.55 * Math.sqrt(1 - across * across) + 0.12 * side, 0, 1);
-        // Markings
+      if (aKind === 1) {
+        const across = A.across, lighting = clamp(0.3 + 0.55 * Math.sqrt(Math.max(0, 1 - across * across)) + 0.12 * Math.sign(A.v), 0, 1);
         let col: RGB = PAL.paper;
+        const bw = bodyWidth(A.s, L) || 1;
         for (const p of k.patches) {
-          const q = ((s - p.s) / p.rs) ** 2 + (((dist * side) / body - p.v) / p.rv) ** 2 + (hash(c, r, k.id) - 0.5) * 0.15;
+          const q = ((A.s - p.s) / p.rs) ** 2 + (A.v / bw - p.v) ** 2 / (p.rv * p.rv) + (hash(c, r, k.id) - 0.5) * 0.15;
           if (q < 1) { col = k.variety === 'asagi' && p.s > 0.2 ? PAL.cobalt : PAL.ember; break; }
         }
-        if (k.variety === 'asagi' && col === PAL.paper && s > 0.18) col = mix(PAL.paper, PAL.cobalt, 0.18 + 0.18 * Math.sin(s * 60 + k.id));
+        if (k.variety === 'asagi' && col === PAL.paper && A.s > 0.18) col = mix(PAL.paper, PAL.cobalt, 0.18 + 0.18 * Math.sin(A.s * 60 + k.id));
         const lit = col === PAL.ember ? mix(PAL.ember, PAL.emberHi, lighting * 0.8) : scale(col, 0.62 + 0.45 * lighting);
-        this.tile[i] = this.pack(scale(lit, 0.55)); this.tileA[i] = depthA * 0.55;
-        const eye = s > 0.065 && s < 0.1 && across > 0.5 && across < 0.85;
-        const g = eye ? 'o' : RAMP[clamp(Math.round(lighting * (RAMP.length - 1)) + ((hash(c, r, k.id) * 3) | 0) - 1, 0, RAMP.length - 1)];
-        this.glyph[i] = g.charCodeAt(0);
-        this.color[i] = this.pack(eye ? PAL.eye : lit);
-        this.alpha[i] = depthA;
-        // Soft drop shadow on the water.
+        if (edge) {
+          this.glyph[i] = line.charCodeAt(0); this.color[i] = this.pack(PAL.paper); this.alpha[i] = depthA;
+          this.tile[i] = this.pack(scale(lit, 0.5)); this.tileA[i] = depthA * 0.3;
+        } else {
+          const eye = A.s > 0.07 && A.s < 0.115 && A.across > 0.45 && A.across < 0.85;
+          const g = eye ? 'O' : RAMP[clamp(Math.round(lighting * (RAMP.length - 1)) + ((hash(c, r, k.id) * 3) | 0) - 1, 0, RAMP.length - 1)];
+          this.glyph[i] = g.charCodeAt(0); this.color[i] = this.pack(eye ? PAL.eye : lit); this.alpha[i] = depthA;
+          this.tile[i] = this.pack(eye ? PAL.paper : scale(lit, 0.55)); this.tileA[i] = depthA * (eye ? 0.95 : 0.55);
+        }
         const sc = i + sx + sy * cols;
         if (sc < this.shadow.length && c + sx < cols) this.shadow[sc] = 1;
       } else {
-        // Tail and pectoral fins: translucent, drawn as drifting marks.
+        // Tail and pectoral fins: lighter than the body, outlined so the shape still reads.
         const jitter = hash(c + ((time * 1.6) | 0), r, k.id);
-        this.glyph[i] = (jitter < 0.5 ? '.' : ':').charCodeAt(0);
-        this.color[i] = this.pack(PAL.fin);
-        this.alpha[i] = depthA * (inTail ? 0.55 : 0.45);
-        this.tile[i] = this.pack(PAL.fin); this.tileA[i] = depthA * 0.12;
-        void bi;
+        this.glyph[i] = (edge ? line : jitter < 0.5 ? '.' : ':').charCodeAt(0);
+        this.color[i] = this.pack(edge ? scale(PAL.fin, 1.1) : PAL.fin);
+        this.alpha[i] = depthA * (edge ? 0.85 : 0.55);
+        this.tile[i] = this.pack(PAL.fin); this.tileA[i] = depthA * (edge ? 0.1 : 0.18);
       }
     }
   }
