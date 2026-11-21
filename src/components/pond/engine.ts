@@ -60,13 +60,16 @@ export interface Box { left: number; top: number; right: number; bottom: number 
 
 function makePatches(id: number, variety: Variety): Patch[] {
   const r = (n: number) => hash(id, n, 41);
-  if (variety === 'tancho') return [{ s: 0.1, v: 0, rs: 0.06, rv: 0.55 }];
+  // Tancho: one round red crown on the head.
+  if (variety === 'tancho') return [{ s: 0.14, v: 0, rs: 0.05, rv: 0.55 }];
   const out: Patch[] = [];
-  if (r(0) < 0.75) out.push({ s: 0.1, v: (r(1) - 0.5) * 0.3, rs: 0.055 + 0.03 * r(2), rv: 0.7 });
-  const n = 2 + Math.floor(2 * r(3));
+  // A rounded head patch that stops short of the snout.
+  if (r(0) < 0.85) out.push({ s: 0.16 + 0.03 * r(1), v: (r(2) - 0.5) * 0.2, rs: 0.065 + 0.02 * r(3), rv: 0.82 });
+  // Big blocky patches on the back that wrap across the body, with white between them.
+  const n = 2 + Math.floor(2 * r(4));
+  const span = 0.42 / n;
   for (let i = 0; i < n; i++) {
-    const w = 0.42 / n;
-    out.push({ s: 0.25 + w * (i + 0.5) + (r(10 + i) - 0.5) * w * 0.3, v: (r(20 + i) - 0.5) * 0.4, rs: w * (0.32 + 0.12 * r(30 + i)), rv: 0.5 + 0.3 * r(40 + i) });
+    out.push({ s: 0.34 + span * (i + 0.5) + (r(10 + i) - 0.5) * span * 0.3, v: (r(20 + i) - 0.5) * 0.3, rs: span * (0.3 + 0.14 * r(30 + i)), rv: 0.95 + 0.25 * r(40 + i) });
   }
   return out;
 }
@@ -80,7 +83,7 @@ export class Pond {
 
   private seededBase = 0; private seededCount = 0;
   private layout(w: number, h: number) {
-    return { base: clamp(0.5 * Math.min(w, h), 150, 360), count: clamp(Math.round((w * h) / 260000), 3, 6) };
+    return { base: clamp(0.5 * Math.min(w, h), 170, 400), count: clamp(Math.round((w * h) / 330000), 3, 5) };
   }
   resize(w: number, h: number) {
     this.width = w; this.height = h;
@@ -97,7 +100,7 @@ export class Pond {
     const kinds: Variety[] = ['kohaku', 'asagi', 'kohaku', 'tancho', 'asagi', 'kohaku'];
     this.koi = [];
     for (let i = 0; i < count; i++) {
-      const length = base * rand(0.62, 1);
+      const length = base * rand(0.74, 1);
       const heading = rand(0, TAU);
       const x = rand(0.15 * w, 0.85 * w), y = rand(0.15 * h, 0.85 * h);
       const nodes = new Float32Array(NODES * 2);
@@ -259,7 +262,7 @@ export class Pond {
     for (let i = 1; i < NODES; i++) {
       const px = n[(i - 1) * 2], py = n[(i - 1) * 2 + 1];
       let na = Math.atan2(n[2 * i + 1] - py, n[2 * i] - px);
-      na = a + clamp(angleDiff(a, na), -0.2, 0.2);
+      na = a + clamp(angleDiff(a, na), -0.1, 0.1);
       n[2 * i] = px + Math.cos(na) * seg; n[2 * i + 1] = py + Math.sin(na) * seg;
       a = na;
     }
@@ -276,16 +279,22 @@ export class Pond {
 
 // ---------------------------------------------------------------- renderer
 
+// Half-width / length at each arc fraction, measured from an overhead photograph of a Kohaku:
+// a rounded snout, widest a third of the way back, then an even taper to a thin tail stalk.
+const PROFILE: [number, number][] = [
+  [0, 0], [0.012, 0.04], [0.04, 0.074], [0.09, 0.094], [0.16, 0.109], [0.26, 0.118], [0.37, 0.121],
+  [0.5, 0.117], [0.6, 0.106], [0.7, 0.088], [0.8, 0.057], [0.87, 0.03], [0.93, 0.018],
+];
 const bodyWidth = (s: number, L: number) => {
-  // Half-width of the body at arc fraction s (0 = nose, 1 = tail tip): rounded head, fullest at the shoulder, tapering to the tail stalk.
-  if (s < 0 || s > 0.8) return 0;
-  const head = Math.sqrt(clamp(s / 0.07, 0, 1));
-  const belly = Math.sin(Math.PI * clamp((s + 0.02) / 0.9, 0, 1));
-  return L * 0.132 * head * Math.pow(belly, 0.7) * (1 - 0.3 * s);
+  if (s <= 0 || s >= 0.93) return 0;
+  let i = 1;
+  while (PROFILE[i][0] < s) i++;
+  const [s0, w0] = PROFILE[i - 1], [s1, w1] = PROFILE[i];
+  return L * (w0 + (w1 - w0) * smooth(0, 1, (s - s0) / (s1 - s0)));
 };
+// The caudal fin: short and soft, a gentle fan with a shallow notch.
 const tailHalf = (u: number, L: number, flare: number) =>
-  // u: 0..1 along the tail. Fans out, then tapers at the tips.
-  L * (0.014 + 0.115 * Math.pow(Math.sin(Math.min(1, u) * Math.PI * 0.5), 1.25)) * flare * (1 - 0.3 * smooth(0.85, 1, u));
+  L * (0.018 + 0.066 * Math.pow(Math.sin(clamp(u, 0, 1) * Math.PI * 0.55), 1.1)) * flare * (1 - 0.25 * smooth(0.8, 1, u));
 
 interface Probe { kind: 0 | 1 | 2 | 3; s: number; v: number; across: number; tx: number; ty: number }
 
@@ -384,13 +393,19 @@ export class PondRenderer {
     const dist = Math.sqrt(best), body = bodyWidth(s, L);
     out.s = s; out.v = dist * side; out.tx = tx; out.ty = ty; out.kind = 0; out.across = 0;
     if (body > 0 && dist <= body) { out.kind = 1; out.across = dist / body; return out; }
-    if (s > 0.7) {
-      const u = (s - 0.7) / 0.3, tw = tailHalf(u, L, flare), notch = tw * 0.42 * smooth(0.55, 1, u);
+    if (s > 0.86) {
+      const u = (s - 0.86) / 0.14, tw = tailHalf(u, L, flare), notch = tw * 0.5 * smooth(0.6, 1, u);
       if (dist <= tw && dist >= notch) { out.kind = 2; out.across = dist / (tw || 1); return out; }
     }
-    if (s > 0.12 && s < 0.32) {
-      const f = (s - 0.12) / 0.2, reach = L * 0.13 * Math.pow(1 - f, 0.9) * (1 + 0.18 * Math.sin(time * 2.4 + id * 1.7 + side));
-      if (dist > body * 0.85 && dist <= body + reach) { out.kind = 3; out.across = (dist - body) / (reach || 1); return out; }
+    // Pectoral fins: broad rounded paddles just behind the head, held out to the side.
+    if (s > 0.3 && s < 0.47) {
+      const f = (s - 0.3) / 0.17, reach = L * 0.125 * Math.pow(Math.sin(Math.PI * Math.pow(f, 0.8)), 0.6) * (1 + 0.14 * Math.sin(time * 2.4 + id * 1.7 + side));
+      if (dist > body * 0.82 && dist <= body + reach) { out.kind = 3; out.across = (dist - body) / (reach || 1); return out; }
+    }
+    // Pelvic fins: a smaller pair further back.
+    if (s > 0.6 && s < 0.7) {
+      const f = (s - 0.6) / 0.1, reach = L * 0.05 * Math.sin(Math.PI * f) * (1 + 0.1 * Math.sin(time * 2.1 + id + side));
+      if (dist > body * 0.82 && dist <= body + reach) { out.kind = 3; out.across = (dist - body) / (reach || 1); return out; }
     }
     return out;
   }
@@ -446,7 +461,7 @@ export class PondRenderer {
         let col: RGB = PAL.paper;
         const bw = bodyWidth(A.s, L) || 1;
         for (const p of k.patches) {
-          const q = ((A.s - p.s) / p.rs) ** 2 + (A.v / bw - p.v) ** 2 / (p.rv * p.rv) + (hash(c, r, k.id) - 0.5) * 0.15;
+          const q = ((A.s - p.s) / p.rs) ** 2 + (A.v / bw - p.v) ** 2 / (p.rv * p.rv) + (hash(c, r, k.id) - 0.5) * 0.3;
           if (q < 1) { col = k.variety === 'asagi' && p.s > 0.2 ? PAL.cobalt : PAL.ember; break; }
         }
         if (k.variety === 'asagi' && col === PAL.paper && A.s > 0.18) col = mix(PAL.paper, PAL.cobalt, 0.18 + 0.18 * Math.sin(A.s * 60 + k.id));
@@ -455,9 +470,10 @@ export class PondRenderer {
           this.glyph[i] = line.charCodeAt(0); this.color[i] = this.pack(PAL.paper); this.alpha[i] = depthA;
           this.tile[i] = this.pack(scale(lit, 0.5)); this.tileA[i] = depthA * 0.3;
         } else {
-          const eye = A.s > 0.07 && A.s < 0.115 && A.across > 0.45 && A.across < 0.85;
+          const eye = A.s > 0.095 && A.s < 0.135 && A.across > 0.7 && A.across < 0.95;
+          const dorsal = !eye && A.s > 0.42 && A.s < 0.84 && Math.abs(A.v) < 0.07 * bw;
           const g = eye ? 'O' : RAMP[clamp(Math.round(lighting * (RAMP.length - 1)) + ((hash(c, r, k.id) * 3) | 0) - 1, 0, RAMP.length - 1)];
-          this.glyph[i] = g.charCodeAt(0); this.color[i] = this.pack(eye ? PAL.eye : lit); this.alpha[i] = depthA;
+          this.glyph[i] = (dorsal ? line : g).charCodeAt(0); this.color[i] = this.pack(eye ? PAL.eye : dorsal ? PAL.fin : lit); this.alpha[i] = depthA;
           this.tile[i] = this.pack(eye ? PAL.paper : scale(lit, 0.55)); this.tileA[i] = depthA * (eye ? 0.95 : 0.55);
         }
         const sc = i + sx + sy * cols;
