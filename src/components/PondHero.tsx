@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowDown } from '@phosphor-icons/react';
 import { Pond, PondRenderer, type Box } from './pond/engine';
 import { email } from '../data';
+import { useMotion } from '../motion';
 
 const QUOTE = ['observe first,', 'then design'];
 const STEP = 1 / 60;
@@ -31,6 +32,8 @@ export default function PondHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const [counts, setCounts] = useState({ koi: 0, pellets: 0 });
+  // Honours the site's Motion switch as well as the system setting (the provider merges both).
+  const { enabled: motionOn } = useMotion();
 
   useEffect(() => {
     const canvas = canvasRef.current, section = sectionRef.current;
@@ -38,7 +41,6 @@ export default function PondHero() {
     const pond = new Pond();
     let renderer: PondRenderer;
     try { renderer = new PondRenderer(canvas); } catch { return; }
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     let raf = 0, last = 0, acc = 0, frames = 0, visible = true, lastPtr = 0;
     let reported = { koi: -1, pellets: -1 };
 
@@ -63,16 +65,18 @@ export default function PondHero() {
       if (next.koi !== reported.koi || next.pellets !== reported.pellets) { reported = next; setCounts(next); }
     };
     const drawStill = () => {
-      if (pond.time < 4) for (let i = 0; i < 240; i++) pond.step(STEP);
+      if (pond.time < 4) for (let i = 0; i < 242; i++) pond.step(STEP);
       measure(); renderer.render(pond, STEP); report();
     };
     const resize = () => {
       const r = canvas.getBoundingClientRect();
       if (r.width < 1 || r.height < 1) return;
-      renderer.resize(r.width, r.height, Math.min(window.devicePixelRatio || 1, 2));
+      // Cap total canvas pixels (~4MP) as well as DPR so 4K screens stay smooth.
+      const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(4e6 / (r.width * r.height))));
+      renderer.resize(r.width, r.height, dpr);
       pond.resize(r.width, r.height);
       measure(); report();
-      if (reduced.matches) drawStill();
+      if (!motionOn) drawStill();
     };
     const frame = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
@@ -87,7 +91,7 @@ export default function PondHero() {
     const schedule = () => {
       cancelAnimationFrame(raf);
       if (!visible) return;
-      if (reduced.matches) { drawStill(); return; }
+      if (!motionOn) { drawStill(); return; }
       last = performance.now(); raf = requestAnimationFrame(frame);
     };
     const local = (e: PointerEvent | MouseEvent) => {
@@ -101,9 +105,11 @@ export default function PondHero() {
       lastPtr = e.timeStamp; p.x = x; p.y = y; p.active = inside && e.pointerType !== 'touch';
     };
     const onClick = (e: MouseEvent) => {
-      if (reduced.matches) return;
+      if (!motionOn) return;
       const t = e.target as Element | null;
-      if (t?.closest('a, button, input, textarea, select, label, [role="button"], [data-koi-ignore]')) return;
+      // Only clicks on the pond itself feed it: not the nav, links, or anything outside this section.
+      if (!t || !section.contains(t)) return;
+      if (t.closest('a, button, input, textarea, select, label, header, nav, [role="button"], [data-koi-ignore]')) return;
       if (window.getSelection()?.toString()) return;
       const { x, y, inside } = local(e);
       if (inside) { pond.feed(x, y); report(); }
@@ -112,7 +118,6 @@ export default function PondHero() {
 
     const ro = new ResizeObserver(resize); ro.observe(canvas);
     const io = new IntersectionObserver(([en]) => { visible = en.isIntersecting; schedule(); }); io.observe(canvas);
-    reduced.addEventListener('change', schedule);
     window.addEventListener('pointermove', onMove, { passive: true });
     window.addEventListener('click', onClick);
     document.documentElement.addEventListener('pointerleave', onLeave);
@@ -123,11 +128,10 @@ export default function PondHero() {
 
     return () => {
       cancelAnimationFrame(raf); ro.disconnect(); io.disconnect();
-      reduced.removeEventListener('change', schedule);
       window.removeEventListener('pointermove', onMove); window.removeEventListener('click', onClick);
       document.documentElement.removeEventListener('pointerleave', onLeave); window.removeEventListener('blur', onLeave);
     };
-  }, []);
+  }, [motionOn]);
 
   return (
     <section ref={sectionRef} id="hero" className="pond-hero" data-light="low" data-chapter="00" data-chapter-name="Intro" aria-labelledby="hero-title">
@@ -143,10 +147,10 @@ export default function PondHero() {
       <div className="pond-inner">
         <Quote />
         <div className="pond-copy mono" data-koi-avoid>
-          <h1 id="hero-title">Hi, I&rsquo;m Rewa.</h1>
+          <h1 id="hero-title">Hi, I&rsquo;m Rewa Mehta.</h1>
           <p>Research-led product designer for healthcare and AI-assisted products. I turn complex, high-stakes workflows into interfaces people trust.</p>
-          <p>Before that, UI/UX design at <a href="#about">Akoode Technologies</a> (intern) and <a href="#about">Chitrankitt Ventures</a>.</p>
-          <p>Currently, studying M.Des in UI/UX at <a href="#about">NIFT New Delhi</a>. Open to Q1/Q2 roles.</p>
+          <p>UI/UX design at <a href="#about">Akoode Technologies</a> (intern) and <a href="#about">Chitrankitt Ventures</a>. M.Des, UI/UX, <a href="#about">NIFT New Delhi</a>.</p>
+          <p>Open to Q1/Q2 roles.</p>
           <p className="pond-links">
             <a href="#featured-work">work <ArrowDown size={12} aria-hidden="true" /></a>
             <span aria-hidden="true"> / </span>

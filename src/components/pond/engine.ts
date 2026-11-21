@@ -78,16 +78,22 @@ export class Pond {
   lastFeed = -Infinity;
   pointer = { x: 0, y: 0, speed: 0, active: false };
 
+  private seededBase = 0; private seededCount = 0;
+  private layout(w: number, h: number) {
+    return { base: clamp(0.5 * Math.min(w, h), 150, 360), count: clamp(Math.round((w * h) / 260000), 3, 6) };
+  }
   resize(w: number, h: number) {
-    const first = this.width === 0;
     this.width = w; this.height = h;
-    if (first) this.seed();
+    const { base, count } = this.layout(w, h);
+    // Seed once, and again if the viewport changes enough that the fish no longer fit it.
+    if (!this.seededBase || Math.abs(base / this.seededBase - 1) > 0.25 || count !== this.seededCount) this.seed();
   }
 
   private seed() {
     const { width: w, height: h } = this;
-    const base = clamp(0.5 * Math.min(w, h), 150, 360);
-    const count = clamp(Math.round((w * h) / 260000), 3, 6);
+    const { base, count } = this.layout(w, h);
+    this.seededBase = base; this.seededCount = count;
+    this.pellets = []; this.ripples = [];
     const kinds: Variety[] = ['kohaku', 'asagi', 'kohaku', 'tancho', 'asagi', 'kohaku'];
     this.koi = [];
     for (let i = 0; i < count; i++) {
@@ -182,9 +188,9 @@ export class Pond {
       closeness = clamp(1 - fd / (1.2 * L), 0, 1);
     } else if (ptr.active && pd < 300) {
       // Curious: drift toward the cursor, then circle it.
-      const px = ptr.x - hx, py = ptr.y - hy, s = clamp(pd / (0.6 * L), 0, 1), pull = k.curiosity * (1 - pd / 300) * 2.2;
-      dx += ((px / pd) * s - (py / pd) * (1 - s)) * pull;
-      dy += ((py / pd) * s + (px / pd) * (1 - s)) * pull;
+      const pdn = pd || 1, px = ptr.x - hx, py = ptr.y - hy, s = clamp(pd / (0.6 * L), 0, 1), pull = k.curiosity * (1 - pd / 300) * 2.2;
+      dx += ((px / pdn) * s - (py / pdn) * (1 - s)) * pull;
+      dy += ((py / pdn) * s + (px / pdn) * (1 - s)) * pull;
       curious = true;
     }
 

@@ -37,31 +37,10 @@ function playIntro() {
   // Light comes up, the line is drawn, the name is set, then the small type is typed in.
   gsap.timeline({ defaults: { ease: 'expo.out' }, onComplete: () => { introPlayed = true; } })
     .fromTo(light, { fade: 1 }, { fade: 0, duration: 3, ease: 'power2.inOut' }, 0)
-    .from('.hero-rule', { scaleX: 0, duration: 1.6, ease: 'expo.inOut' }, 0.35)
-    .from('.hero-word', { yPercent: 112, duration: 1.6, stagger: 0.12 }, 0.8)
-    .from('[data-intro]', { opacity: 0, y: 16, duration: 1.2, stagger: 0.07, ease: 'power3.out' }, 1.3)
     .from('.site-nav', { opacity: 0, y: -14, duration: 1.2 }, 1.5);
 }
 
 function scenes(wide: boolean) {
-  // Intro: the aperture closes. The rule between the names rises to the middle and becomes a slit of light.
-  const rule = document.querySelector<HTMLElement>('.hero-rule');
-  const hero = document.querySelector<HTMLElement>('.hero');
-  const lift = () => {
-    if (!rule || !hero) return 0;
-    const ruleBox = rule.getBoundingClientRect();
-    const heroBox = hero.getBoundingClientRect();
-    return window.innerHeight * 0.48 - (ruleBox.top - heroBox.top + ruleBox.height / 2);
-  };
-  gsap.timeline({ scrollTrigger: { trigger: '.hero', start: 'top top', end: wide ? '+=120%' : '+=80%', pin: true, scrub: 0.8, invalidateOnRefresh: true } })
-    .to(light, { close: 1, ease: 'power1.inOut', duration: 1 }, 0)
-    .to('.hero-row, .hero-copy', { opacity: 0, y: -36, ease: 'power1.in', duration: 0.4, stagger: 0.04 }, 0)
-    .to('.hero-title', { y: lift, ease: 'power2.inOut', duration: 0.8 }, 0.05)
-    .to('.hero-title .mask:first-child', { xPercent: -30, opacity: 0, ease: 'power2.in', duration: 0.6 }, 0.3)
-    .to('.hero-title .mask:last-child', { xPercent: 30, opacity: 0, ease: 'power2.in', duration: 0.6 }, 0.3)
-    // Explicit start: the intro may still be drawing this rule when the scrub first records its values.
-    .fromTo('.hero-rule', { scaleX: 1, opacity: 1 }, { scaleX: 1.9, opacity: 0, ease: 'power2.in', duration: 0.5, immediateRender: false }, 0.5);
-
   // The short version: the manifesto lights up word by word; each hand-drawn mark is drawn as its word arrives.
   const words = gsap.utils.toArray<HTMLElement>('.mf-word');
   const statement = gsap.timeline({
