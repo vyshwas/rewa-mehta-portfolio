@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowUp, Copy, Check } from '@phosphor-icons/react';
 import { MotionProvider, ScrollChoreography, useMotion } from './motion';
 import Atmosphere from './components/Atmosphere';
-import Hero from './components/Hero';
+import Hero from './components/PondHero';
 import Manifesto from './components/Manifesto';
 import DeepCaseStudy from './components/DeepCaseStudy';
 import WorkIndex from './components/WorkIndex';
