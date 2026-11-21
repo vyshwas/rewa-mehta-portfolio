@@ -31,7 +31,6 @@ function Quote() {
 export default function PondHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
-  const [counts, setCounts] = useState({ koi: 0, pellets: 0 });
   // Honours the site's Motion switch as well as the system setting (the provider merges both).
   const { enabled: motionOn } = useMotion();
 
@@ -42,7 +41,6 @@ export default function PondHero() {
     let renderer: PondRenderer;
     try { renderer = new PondRenderer(canvas); } catch { return; }
     let raf = 0, last = 0, acc = 0, frames = 0, visible = true, lastPtr = 0;
-    let reported = { koi: -1, pellets: -1 };
 
     const measure = () => {
       const r = canvas.getBoundingClientRect();
@@ -60,13 +58,9 @@ export default function PondHero() {
       }
       renderer.setDimBoxes(merged); pond.avoid = merged;
     };
-    const report = () => {
-      const next = { koi: pond.koi.length, pellets: pond.pellets.length };
-      if (next.koi !== reported.koi || next.pellets !== reported.pellets) { reported = next; setCounts(next); }
-    };
     const drawStill = () => {
       if (pond.time < 4) for (let i = 0; i < 242; i++) pond.step(STEP);
-      measure(); renderer.render(pond, STEP); report();
+      measure(); renderer.render(pond, STEP);
     };
     const resize = () => {
       const r = canvas.getBoundingClientRect();
@@ -75,7 +69,7 @@ export default function PondHero() {
       const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(4e6 / (r.width * r.height))));
       renderer.resize(r.width, r.height, dpr);
       pond.resize(r.width, r.height);
-      measure(); report();
+      measure();
       if (!motionOn) drawStill();
     };
     const frame = (now: number) => {
@@ -85,7 +79,7 @@ export default function PondHero() {
       while (acc >= STEP && steps < 4) { pond.step(STEP); acc -= STEP; steps++; }
       if (steps === 4) acc = 0;
       if (++frames % 30 === 0) measure();
-      renderer.render(pond, dt); report();
+      renderer.render(pond, dt);
       raf = requestAnimationFrame(frame);
     };
     const schedule = () => {
@@ -112,7 +106,7 @@ export default function PondHero() {
       if (t.closest('a, button, input, textarea, select, label, header, nav, [role="button"], [data-koi-ignore]')) return;
       if (window.getSelection()?.toString()) return;
       const { x, y, inside } = local(e);
-      if (inside) { pond.feed(x, y); report(); }
+      if (inside) pond.feed(x, y);
     };
     const onLeave = () => { pond.pointer.active = false; pond.pointer.speed = 0; };
 
@@ -136,13 +130,6 @@ export default function PondHero() {
   return (
     <section ref={sectionRef} id="hero" className="pond-hero" data-light="low" data-chapter="00" data-chapter-name="Intro" aria-labelledby="hero-title">
       <canvas ref={canvasRef} className="pond-canvas" aria-hidden="true" />
-
-      {counts.koi > 0 && (
-        <div className="pond-count mono" data-koi-avoid aria-hidden="true">
-          <div>{counts.koi}</div>
-          <div key={counts.pellets} className="pond-count-pellets">{counts.pellets}</div>
-        </div>
-      )}
 
       <div className="pond-inner">
         <Quote />
