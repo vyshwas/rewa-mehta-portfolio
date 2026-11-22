@@ -44,13 +44,13 @@ interface Paint {
   g?: (u: number, v: number, x: number, y: number) => string | null;
   gc?: RGB; ga?: number;
   edge?: number;         // darkening on the outline of the face (0 = none)
-  key?: number;          // depth key written for the cat to be hidden behind this
+  bid?: number;          // id of the solid this cell belongs to (the cat is hidden behind it)
 }
 
 export interface IsoScene {
   cols: number; rows: number; cw: number; ch: number;
   A: number; B: number; cx: number; ty: number;
-  rgb: Float32Array; glyph: Uint16Array; gcol: Uint32Array; galpha: Float32Array; light: Float32Array; depth: Float32Array;
+  rgb: Float32Array; glyph: Uint16Array; gcol: Uint32Array; galpha: Float32Array; light: Float32Array; depth: Int16Array; bx1: number[]; by1: number[];
   obstacles: [number, number, number, number][];
   floor: { x1: number; y1: number };
   spawn: { x: number; y: number }; nap: { x: number; y: number };
@@ -58,17 +58,23 @@ export interface IsoScene {
 
 class Iso {
   cols: number; rows: number; A: number; B: number; cx: number; ty: number;
-  rgb: Float32Array; glyph: Uint16Array; gcol: Uint32Array; galpha: Float32Array; depth: Float32Array;
+  rgb: Float32Array; glyph: Uint16Array; gcol: Uint32Array; galpha: Float32Array; depth: Int16Array; bx1: number[] = []; by1: number[] = [];
+  reg(x1: number, y1: number) { this.bx1.push(x1); this.by1.push(y1); return this.bx1.length - 1; }
   constructor(public W: number, public H: number, public cw: number, public ch: number) {
     this.cols = Math.ceil(W / cw); this.rows = Math.ceil(H / ch);
     // Fit the whole corner in the frame. On wide screens the text sits in a left column, so the room moves right.
-    const wide = W >= 1000;
-    this.A = wide ? clamp((H * 0.97 - 30) / 880, 0.5, 1.4) : clamp(W / 1200, 0.28, 1);
-    this.B = this.A * 0.95;
-    this.cx = wide ? W * 0.6 : W * 0.5;
-    this.ty = 280 * this.B + (wide ? 34 : 64);
+    const wide = typeof window !== 'undefined' && window.matchMedia('(min-width: 1000px)').matches;   // same breakpoint as the CSS
+    const RW = 640, RL = 540;
+    let A: number;
+    if (wide) A = Math.min(clamp((H * 0.97 - 30) / 880, 0.5, 1.4), (W - 8) / (RW + RL));
+    else A = clamp(Math.min(W / 1180, (H * 0.62 - 40) / 866), 0.25, 1);
+    this.A = A; this.B = A * 0.95;
+    this.cx = wide ? clamp(W * 0.6, RL * A, W - 8 - RW * A) : W * 0.5;
+    const wallTop = 280 * this.B;
+    this.ty = wallTop + (wide ? 34 : 64);
+    if (!wide) this.ty += Math.max(0, (H * 0.5 - 64 - (wallTop + 570 * A + 10)) / 2);   // centre it in the space above the text
     const n = this.cols * this.rows;
-    this.rgb = new Float32Array(n * 3); this.glyph = new Uint16Array(n); this.gcol = new Uint32Array(n); this.galpha = new Float32Array(n); this.depth = new Float32Array(n).fill(-3);
+    this.rgb = new Float32Array(n * 3); this.glyph = new Uint16Array(n); this.gcol = new Uint32Array(n); this.galpha = new Float32Array(n); this.depth = new Int16Array(n).fill(-1);
   }
   P(x: number, y: number, z: number): [number, number] { return [this.cx + (x - y) * this.A, this.ty + (x + y) * this.A * 0.5 - z * this.B]; }
   /** world floor coordinates under a screen point */
@@ -120,7 +126,7 @@ class Iso {
     const g = p.g ? p.g(u, v, px, py) : null;
     if (g) { this.glyph[i] = g.charCodeAt(0); this.gcol[i] = pack(p.gc ?? mul(col, 1.35)); this.galpha[i] = p.ga ?? 0.55; }
     else if (a >= 0.9) this.glyph[i] = 0;
-    if (p.key !== undefined) this.depth[i] = p.key;
+    if (p.bid !== undefined) this.depth[i] = p.bid;
   }
 
   // ---- 3D helpers (world cm -> screen)
@@ -135,17 +141,17 @@ class Iso {
     this.para(O, [e[0] - O[0], e[1] - O[1]], [d[0] - O[0], d[1] - O[1]], p);
   }
   /** an axis-aligned block: its three visible faces get their own paint */
-  box(x0: number, y0: number, z0: number, dx: number, dy: number, dz: number, top: Paint, left: Paint, right: Paint, key?: number) {
-    const x1 = x0 + dx, y1 = y0 + dy, zt = z0 + dz, k = key ?? x1 + y1;
+  box(x0: number, y0: number, z0: number, dx: number, dy: number, dz: number, top: Paint, left: Paint, right: Paint, reg: boolean | number = true) {
+    const x1 = x0 + dx, y1 = y0 + dy, zt = z0 + dz, bid = reg ? this.reg(x1, y1) : undefined;
     // +y face (faces down-left on screen)
     let O = this.P(x0, y1, zt), e = this.P(x1, y1, zt), d = this.P(x0, y1, z0);
-    this.para(O, [e[0] - O[0], e[1] - O[1]], [d[0] - O[0], d[1] - O[1]], { ...left, key: k });
+    this.para(O, [e[0] - O[0], e[1] - O[1]], [d[0] - O[0], d[1] - O[1]], { ...left, bid });
     // +x face (faces down-right)
     O = this.P(x1, y0, zt); e = this.P(x1, y1, zt); d = this.P(x1, y0, z0);
-    this.para(O, [e[0] - O[0], e[1] - O[1]], [d[0] - O[0], d[1] - O[1]], { ...right, key: k });
+    this.para(O, [e[0] - O[0], e[1] - O[1]], [d[0] - O[0], d[1] - O[1]], { ...right, bid });
     // top
     O = this.P(x0, y0, zt); e = this.P(x1, y0, zt); d = this.P(x0, y1, zt);
-    this.para(O, [e[0] - O[0], e[1] - O[1]], [d[0] - O[0], d[1] - O[1]], { ...top, key: k });
+    this.para(O, [e[0] - O[0], e[1] - O[1]], [d[0] - O[0], d[1] - O[1]], { ...top, bid });
   }
   /** soft shadow on the floor, thrown away from the window */
   shadow(x0: number, y0: number, dx: number, dy: number, h: number) {
@@ -155,21 +161,21 @@ class Iso {
   solid(x0: number, y0: number, z0: number, dx: number, dy: number, dz: number, col: RGB, opt: { tex?: Paint['g']; gc?: RGB; shadow?: boolean; key?: number } = {}) {
     if (opt.shadow !== false) this.shadow(x0, y0, dx, dy, dz + z0);
     const mk = (f: number): Paint => ({ c: (u, v) => mul(col, f * (0.96 + 0.08 * (1 - v))), g: opt.tex, gc: opt.gc, ga: 0.5 });
-    this.box(x0, y0, z0, dx, dy, dz, mk(1.12), mk(0.88), mk(0.7), opt.key);
+    this.box(x0, y0, z0, dx, dy, dz, mk(1.12), mk(0.88), mk(0.7), true);
   }
   /** a round pot or pouf: ellipse top, rounded side */
   cyl(cx: number, cy: number, r: number, z0: number, dz: number, col: RGB, topCol?: RGB) {
     const [bx, by] = this.P(cx, cy, z0), [tx, ty2] = this.P(cx, cy, z0 + dz);
-    const rx = r * this.A * 1.414, ry = r * this.A * 0.707, key = cx + cy + r;
+    const rx = r * this.A * 1.414, ry = r * this.A * 0.707, bid = this.reg(cx + r, cy + r);
     this.region(bx - rx, ty2 - ry, bx + rx, by + ry, (px, py) => {
       const inTop = ((px - tx) / rx) ** 2 + ((py - ty2) / ry) ** 2 <= 1;
       const inBot = ((px - bx) / rx) ** 2 + ((py - by) / ry) ** 2 <= 1;
       return inTop || inBot || (Math.abs(px - bx) <= rx && py >= ty2 && py <= by);
-    }, { c: (u, v, x, y) => (((x - tx) / rx) ** 2 + ((y - ty2) / ry) ** 2 <= 1 ? (topCol ?? mul(col, 1.15)) : mul(col, 0.8 + 0.25 * Math.cos((x - bx) / rx * 1.3))), key, edge: 0.1 });
+    }, { c: (u, v, x, y) => (((x - tx) / rx) ** 2 + ((y - ty2) / ry) ** 2 <= 1 ? (topCol ?? mul(col, 1.15)) : mul(col, 0.8 + 0.25 * Math.cos((x - bx) / rx * 1.3))), bid, edge: 0.1 });
   }
   /** a leafy plant as a billboard of overlapping leaves standing at a floor point */
-  foliage(x: number, y: number, z: number, r: number, seed: number, n = 8) {
-    const [sx, sy] = this.P(x, y, z), key = x + y + 6;
+  foliage(x: number, y: number, z: number, r: number, seed: number, n = 8, reg = true) {
+    const [sx, sy] = this.P(x, y, z), bid = reg ? this.reg(x + 6, y + 6) : undefined;
     for (let i = 0; i < n; i++) {
       const a = hash(seed, i, 1) * TAU, d = r * this.A * (0.15 + 0.7 * hash(seed, i, 2)), lr = r * this.A * (0.38 + 0.3 * hash(seed, i, 3));
       const cxx = sx + Math.cos(a) * d * 0.9, cyy = sy - Math.abs(Math.sin(a)) * d * 0.9 - r * this.A * 0.2;
@@ -177,7 +183,7 @@ class Iso {
       const cs = Math.cos(a * 0.5), sn = Math.sin(a * 0.5);
       this.region(cxx - lr * 1.3, cyy - lr * 1.3, cxx + lr * 1.3, cyy + lr * 1.3, (px, py) => {
         const dx = px - cxx, dy = py - cyy; return ((dx * cs + dy * sn) / (lr * 1.25)) ** 2 + ((-dx * sn + dy * cs) / (lr * 0.75)) ** 2 <= 1;
-      }, { c: (u, v) => mix(base, mul(base, 1.35), 1 - v), g: (u, v, px, py) => (hash(px | 0, py | 0, seed) < 0.2 ? '%' : null), gc: mul(base, 1.5), ga: 0.5, key, edge: 0.18 });
+      }, { c: (u, v) => mix(base, mul(base, 1.35), 1 - v), g: (u, v, px, py) => (hash(px | 0, py | 0, seed) < 0.2 ? '%' : null), gc: mul(base, 1.5), ga: 0.5, bid, edge: 0.18 });
     }
   }
   plant(x: number, y: number, r: number, seed: number, z = 0, height = 22, n = 8) {
@@ -242,6 +248,10 @@ function buildIso(W: number, H: number, cw: number, ch: number): IsoScene {
   }
   s.wall('R', 130, 250, 196, 232, { c: [232, 230, 226], edge: 0.18 });
   s.wall('R', 138, 242, 200, 204, { c: [190, 188, 184], edge: 0 });
+  for (let k = 0; k < 3; k++) s.wall('R', 140, 240, 210 + k * 5, 211 + k * 5, { c: [176, 174, 170], edge: 0 });   // vent slats
+  s.wall('R', 222, 232, 218, 226, { c: [120, 220, 150], edge: 0 });                                              // status light
+  // radiator under the window end of the left wall
+  s.wall('L', 492, 534, 10, 68, { c: K.white, g: (u, v, px) => ((Math.floor(px / cw) % 2) ? '|' : null), gc: K.grey, ga: 0.9, edge: 0.2 });
   const shY0 = 250, shY1 = 460;
   s.box(0, shY0, 168, 24, shY1 - shY0, 6, { c: K.woodL }, { c: K.woodM }, { c: K.woodD }, 30);
 
@@ -257,17 +267,17 @@ function buildIso(W: number, H: number, cw: number, ch: number): IsoScene {
 
   // bed against the left wall, headboard toward the corner
   add(360, () => {
-    s.shadow(0, 14, 150, 215, 40);
-    s.solid(0, 14, 0, 146, 214, 26, K.woodD, { shadow: false });
-    s.solid(2, 16, 26, 142, 210, 20, K.mattress, { shadow: false });
-    s.box(6, 74, 46, 134, 150, 7,
+    s.shadow(0, 46, 150, 183, 40);
+    s.solid(0, 46, 0, 146, 182, 26, K.woodD, { shadow: false });
+    s.solid(2, 48, 26, 142, 178, 20, K.mattress, { shadow: false });
+    s.box(6, 100, 46, 134, 124, 7,
       { c: (u, v) => mul(mix(K.duvet, K.duvetDark, 0.5 + 0.5 * Math.sin(u * 13 + Math.sin(v * 6) * 2) * Math.sin(v * 9 + u * 3)), 1.04), g: (u, v, px, py) => (hash((px / cw) | 0, (py / ch) | 0, 4) < 0.1 ? '~' : null), gc: K.duvetDark, ga: 0.5, edge: 0.1 },
       { c: mul(K.duvet, 0.85), edge: 0.1 }, { c: mul(K.duvet, 0.68), edge: 0.1 }, 360);
-    s.solid(10, 22, 46, 58, 40, 14, K.pillow, { shadow: false, key: 360 });
-    s.solid(76, 24, 46, 58, 40, 14, K.pillowMauve, { shadow: false, key: 360 });
-    s.solid(40, 120, 53, 64, 34, 5, K.duvet, { shadow: false, key: 360 });
+    s.solid(10, 54, 46, 58, 40, 14, K.pillow, { shadow: false, key: 360 });
+    s.solid(76, 56, 46, 58, 40, 14, K.pillowMauve, { shadow: false, key: 360 });
+    s.solid(40, 150, 53, 64, 34, 5, K.duvet, { shadow: false, key: 360 });
   });
-  block(0, 8, 150, 236);
+  block(0, 40, 150, 236);
   // bedside table and a small plant
   add(318, () => { s.solid(0, 244, 0, 38, 38, 46, K.woodM); s.plant(19, 263, 18, 70, 46, 16, 5); });
   block(0, 238, 44, 288);
@@ -333,7 +343,8 @@ function buildIso(W: number, H: number, cw: number, ch: number): IsoScene {
     s.solid(398, 0, 0, 8, 62, 72, K.white, { shadow: false }); s.solid(560, 0, 0, 8, 62, 72, K.white, { shadow: false });
     s.solid(398, 0, 72, 170, 62, 5, K.white, { shadow: false });
     s.box(470, 6, 77, 60, 6, 40, { c: K.dark }, { c: (u, v) => mix([26, 30, 44], [86, 120, 170], 0.5 + 0.3 * (1 - v)), edge: 0.2 }, { c: mul(K.dark, 0.7) }, 560);
-    s.solid(412, 24, 77, 44, 30, 2, K.grey, { shadow: false }); s.solid(412, 24, 79, 44, 3, 26, K.grey, { shadow: false });
+    s.solid(412, 24, 77, 44, 30, 2, K.grey, { shadow: false });
+    s.box(412, 24, 79, 44, 3, 26, { c: K.grey }, { c: (u, v) => mix([70, 110, 170], [150, 190, 235], 1 - v), edge: 0.15 }, { c: mul(K.grey, 0.7) });
     s.solid(480, 34, 77, 60, 20, 2, [44, 44, 48], { tex: (u, v, px, py) => ((((px / cw) | 0) + ((py / ch) | 0)) % 2 ? '.' : null), gc: [130, 130, 134], shadow: false });
     s.cyl(548, 50, 6, 77, 8, K.pot, [64, 44, 30]); s.foliage(548, 50, 85, 9, 61, 4);
   });
@@ -342,14 +353,30 @@ function buildIso(W: number, H: number, cw: number, ch: number): IsoScene {
   block(446, 92, 504, 146);
 
   // plants and shoes
-  add(70, () => { s.plant(28, 24, 26, 11, 0, 40, 8); });
-  block(10, 6, 52, 42);
+  add(70, () => { s.plant(118, 22, 22, 11, 0, 40, 8); });
+  block(98, 4, 140, 44);
   add(330, () => { s.plant(60, 292, 44, 12, 0, 70, 9); });
   add(130, () => { s.plant(560, 110, 30, 34, 0, 40, 7); });
   block(536, 90, 586, 134);
-  add(285, () => {
-    s.floor(104, 276, 24, 12, { c: [226, 224, 220], a: 0.95, edge: 0.15 }); s.floor(104, 292, 24, 12, { c: [196, 196, 200], a: 0.95, edge: 0.15 });
+  // sneakers by the door
+  add(480, () => {
+    s.solid(40, 500, 0, 26, 10, 6, [226, 224, 220]); s.solid(46, 501, 6, 14, 8, 3, [150, 148, 164], { shadow: false });
+    s.solid(40, 516, 0, 26, 10, 6, [196, 196, 200]); s.solid(46, 517, 6, 14, 8, 3, [90, 110, 150], { shadow: false });
   });
+  block(34, 494, 70, 530);
+  // plants on the hanging shelf, with vines trailing down the wall
+  add(30, () => {
+    for (let i = 0; i < 4; i++) {
+      const y = 270 + i * 52;
+      s.cyl(12, y, 6, 174, 8, K.pot, [64, 44, 30]); s.foliage(12, y, 182, 10, 80 + i, 5, false);
+      for (let k = 1; k <= 5; k++) s.foliage(8, y + (k % 2 ? 4 : -4), 174 - k * 13, 5, 90 + i * 7 + k, 2, false);
+    }
+  });
+  // ferns in the foreground
+  add(520, () => { s.plant(540, 440, 34, 41, 0, 40, 12); });
+  block(512, 412, 568, 468);
+  add(470, () => { s.plant(470, 490, 24, 43, 0, 30, 8); });
+  block(450, 470, 492, 512);
   void A;
 
   items.sort((p, q) => p.key - q.key);
@@ -372,8 +399,8 @@ function buildIso(W: number, H: number, cw: number, ch: number): IsoScene {
   }
   return {
     cols: s.cols, rows: s.rows, cw, ch, A: s.A, B: s.B, cx: s.cx, ty: s.ty,
-    rgb: s.rgb, glyph: s.glyph, gcol: s.gcol, galpha: s.galpha, light, depth: s.depth,
-    obstacles, floor: { x1: Wx, y1: Ly }, spawn: { x: 250, y: 150 }, nap: { x: 175, y: 210 },
+    rgb: s.rgb, glyph: s.glyph, gcol: s.gcol, galpha: s.galpha, light, depth: s.depth, bx1: s.bx1, by1: s.by1,
+    obstacles, floor: { x1: Wx, y1: Ly }, spawn: { x: 330, y: 290 }, nap: { x: 170, y: 300 },
   };
 }
 
@@ -381,7 +408,7 @@ function buildIso(W: number, H: number, cw: number, ch: number): IsoScene {
 
 // [bodyX, bodyY, tilt, bodyRx, bodyRy, headX, headY, frontFootX, frontFootY, hindFootX, hindFootY, frontHipX, frontHipY, hindHipX, hindHipY, tailAngle, tailSwing]
 const POSES: Record<string, number[]> = {
-  stand:  [0, -2.7, 0, 2.3, 1.0, 2.9, -3.4, 1.7, 0, -1.7, 0, 1.6, -2.2, -1.6, -2.2, 0.55, 0.3],
+  stand:  [0, -2.7, 0, 2.3, 1.0, 2.9, -3.4, 1.7, 0, -1.7, 0, 1.6, -2.2, -1.6, -2.2, 1.0, 0.3],
   sit:    [-0.7, -1.9, 1.05, 2.1, 1.1, 0.9, -4.4, 1.2, 0, 0.1, 0, 0.8, -2.6, -1.2, -0.9, -0.1, 0.12],
   crouch: [0.2, -1.55, -0.06, 2.3, 0.95, 3.1, -1.95, 2.5, 0, -1.5, 0, 1.8, -1.2, -1.7, -1.9, 0.02, 0.5],
   loaf:   [0, -0.95, 0, 2.2, 0.95, 2.3, -1.05, 1.5, 0, -0.9, 0, 1.2, -0.9, -1.0, -0.8, -0.05, 0.04],
@@ -419,9 +446,9 @@ export class IsoHouse {
   // ---------------------------------------------------------------- setup
   attach(scene: IsoScene, w: number, h: number) {
     this.scene = scene; this.width = w; this.height = h;
-    this.S = clamp(scene.A * 14.5, 9, 26);
-    this.c = this.S / scene.A / 1.25;
-    this.ball.r = this.c * 0.55;
+    this.S = clamp(scene.cw * (scene.A < 0.5 ? 3.1 : 4.2), 14, 30);                 // sized by character cells, so she always has enough of them to read
+    this.c = Math.min(this.S / scene.A / 1.25, 26);        // world scale for movement and reach
+    this.ball.r = clamp(this.c * 0.5, 7, 13);
     this.gw = Math.ceil(scene.floor.x1 / this.g); this.gh = Math.ceil(scene.floor.y1 / this.g);
     this.walk = new Uint8Array(0); this.aSig = '\u0000';
   }
@@ -467,7 +494,7 @@ export class IsoHouse {
   /** The largest connected patch of floor she may use, trying tighter clearances if the first is too small. */
   private rebuildWalk() {
     const s = this.scene; if (!s) return;
-    const r = this.c * 2.2;
+    const r = Math.min(this.c * 1.4, 34);
     const ladder: [number, number][] = [[r, 40], [r * 0.8, 28], [r * 0.6, 18], [r * 0.4, 8], [r * 0.3, 0], [r * 0.4, -1]];
     let best: Uint8Array | null = null, bestCount = 0;
     for (const [cl, pad] of ladder) {
@@ -510,7 +537,7 @@ export class IsoHouse {
   private go(st: State, dur = 0) {
     this.state = st; this.stateT = 0; this.stateDur = dur; this.stuckT = 0;
     if (st === 'bat') { this.pawT = 0; this.kicked = false; }
-    if (st === 'pounce') { this.liftV = 520; this.speed = this.c * 24; this.face(this.ball.x, this.ball.y, 10); }
+    if (st === 'pounce') { this.liftV = 520 * Math.sqrt(this.S / 20); this.speed = this.c * 24; this.face(this.ball.x, this.ball.y, 10); }
     if (st === 'sleep') this.napWalk = true;
   }
 
@@ -715,12 +742,12 @@ export class IsoHouse {
     const toW = (lx: number, ly: number): [number, number] => { const rxp = lx * hc + ly * hs, ryp = -lx * hs + ly * hc; return [hcx + this.f * rxp * S, hcy + ryp * S]; };
     this.cap('head', this.X((bx + P[11]) / 2 + 0.6), this.Y(by - 0.3), hcx, hcy, 0.85 * S, 0.8 * S);
     this.ell('head', hcx, hcy, 1.15 * S, 1.0 * S, 0);
-    const [e1ax, e1ay] = toW(-0.55, -0.55), [e1bx, e1by] = toW(-0.75, -1.9), [e1cx, e1cy] = toW(0.1, -0.7);
-    const [e2ax, e2ay] = toW(0.0, -0.7), [e2bx, e2by] = toW(0.1, -1.95), [e2cx, e2cy] = toW(0.75, -0.5);
+    const [e1ax, e1ay] = toW(-0.7, -0.5), [e1bx, e1by] = toW(-0.8, -2.3), [e1cx, e1cy] = toW(0.1, -0.7);
+    const [e2ax, e2ay] = toW(0.0, -0.7), [e2bx, e2by] = toW(0.12, -2.35), [e2cx, e2cy] = toW(0.88, -0.45);
     this.tri('ear', e1ax, e1ay, e1bx, e1by, e1cx, e1cy); this.tri('ear', e2ax, e2ay, e2bx, e2by, e2cx, e2cy);
-    const [i1ax, i1ay] = toW(-0.5, -0.7), [i1bx, i1by] = toW(-0.64, -1.55), [i1cx, i1cy] = toW(-0.05, -0.75);
+    const [i1ax, i1ay] = toW(-0.55, -0.7), [i1bx, i1by] = toW(-0.7, -1.9), [i1cx, i1cy] = toW(-0.05, -0.75);
     this.tri('earIn', i1ax, i1ay, i1bx, i1by, i1cx, i1cy);
-    const [i2ax, i2ay] = toW(0.05, -0.75), [i2bx, i2by] = toW(0.1, -1.6), [i2cx, i2cy] = toW(0.6, -0.6);
+    const [i2ax, i2ay] = toW(0.05, -0.75), [i2bx, i2by] = toW(0.12, -1.95), [i2cx, i2cy] = toW(0.65, -0.6);
     this.tri('earIn', i2ax, i2ay, i2bx, i2by, i2cx, i2cy);
     const sleeping = this.w.loaf > 0.6, [ex, ey] = toW(0.5, -0.1);
     if (sleeping) this.cap('eye', ex - S * 0.2, ey, ex + S * 0.2, ey, S * 0.07, S * 0.07);
@@ -842,7 +869,7 @@ export class IsoRenderer {
     const { ctx, cols } = this;
     if (!cols || !this.cache || !this.scene) return;
     this.glyph.fill(0); this.tileA.fill(0); this.shadow.fill(0);
-    this.rasterBall(h); this.rasterCat(h);
+    if (h.ball.x + h.ball.y > h.wx + h.wy) { this.rasterCat(h); this.rasterBall(h); } else { this.rasterBall(h); this.rasterCat(h); }
     this.prepare(ctx);
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(this.cache, 0, 0);
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -858,19 +885,19 @@ export class IsoRenderer {
   }
 
   /** The cat or ball is hidden where something nearer than it has been drawn. */
-  private visible(i: number, key: number) { return (this.scene as IsoScene).depth[i] <= key; }
+  private visible(i: number, wx: number, wy: number) { const sc = this.scene as IsoScene, id = sc.depth[i]; return id < 0 || !(wx < sc.bx1[id] && wy < sc.by1[id]); }
 
   private rasterBall(h: IsoHouse) {
     const s = this.scene as IsoScene, b = h.ball, { cw, ch, cols, rows } = this;
-    const sx = s.cx + (b.x - b.y) * s.A, sy = s.ty + (b.x + b.y) * s.A * 0.5 - b.z * s.B, rr = b.r * s.A * 1.2, key = b.x + b.y + 6;
+    const sx = s.cx + (b.x - b.y) * s.A, sy = s.ty + (b.x + b.y) * s.A * 0.5 - b.z * s.B, rr = Math.max(b.r * s.A * 1.2, 4.5);
     // shadow on the floor
     const fy = s.ty + (b.x + b.y) * s.A * 0.5 - 1;
     const sr = Math.floor(fy / ch), sc = Math.floor(sx / cw);
-    if (sr >= 0 && sr < rows && sc >= 0 && sc < cols) this.shadow[sr * cols + sc] = 1;
+    if (sr >= 0 && sr < rows && sc >= 0 && sc < cols && this.visible(sr * cols + sc, b.x, b.y)) this.shadow[sr * cols + sc] = 1;
     for (let r = Math.floor((sy - rr) / ch); r <= Math.floor((sy + rr) / ch); r++) for (let c = Math.floor((sx - rr) / cw); c <= Math.floor((sx + rr) / cw); c++) {
       if (r < 0 || r >= rows || c < 0 || c >= cols) continue;
       const dx = c * cw + cw / 2 - sx, dy = r * ch + ch / 2 - sy, d = Math.hypot(dx, dy); if (d > rr) continue;
-      const i = r * cols + c; if (!this.visible(i, key)) continue;
+      const i = r * cols + c; if (!this.visible(i, b.x, b.y)) continue;
       const band = Math.sin((dx * Math.cos(b.spin) + dy * Math.sin(b.spin)) * 0.6 + b.spin * 2) > 0.15, lit = clamp(0.62 + (-dy / rr) * 0.25, 0.4, 1);
       this.glyph[i] = (d > rr * 0.7 ? '+' : band ? '@' : 'o').charCodeAt(0); this.color[i] = pack(K.cream); this.alpha[i] = 0.95;
       this.tile[i] = pack(mul(band ? K.yarn : K.yarnHi, lit)); this.tileA[i] = 0.95;
@@ -879,7 +906,7 @@ export class IsoRenderer {
 
   private rasterCat(h: IsoHouse) {
     const { cw, ch, cols, rows } = this, prims = h.prims; if (!prims.length) return;
-    const s = this.scene as IsoScene, key = h.wx + h.wy + 12;
+    const s = this.scene as IsoScene;
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (const p of prims) {
       const m = p.kind === 'ell' ? Math.max(p.c, p.d) : p.kind === 'dot' ? p.c : p.kind === 'cap' ? Math.max(p.e, p.f) : 0;
@@ -890,10 +917,10 @@ export class IsoRenderer {
     const ox = 0.42 * cw, oy = 0.42 * ch, out = this.out;
     // shadow on the floor under her
     const [fsx, fsy] = [s.cx + (h.wx - h.wy) * s.A, s.ty + (h.wx + h.wy) * s.A * 0.5];
-    for (let c = Math.floor((fsx - h.S * 3) / cw); c <= Math.floor((fsx + h.S * 3) / cw); c++) { const r = Math.floor((fsy + 3) / ch); if (r >= 0 && r < rows && c >= 0 && c < cols) this.shadow[r * cols + c] = 1; }
+    for (let c = Math.floor((fsx - h.S * 3) / cw); c <= Math.floor((fsx + h.S * 3) / cw); c++) { const r = Math.floor((fsy + 3) / ch); if (r >= 0 && r < rows && c >= 0 && c < cols && this.visible(r * cols + c, h.wx, h.wy)) this.shadow[r * cols + c] = 1; }
     for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
       const px = c * cw + cw / 2, py = r * ch + ch / 2, i = r * cols + c;
-      if (!this.visible(i, key)) continue;
+      if (!this.visible(i, h.wx, h.wy)) continue;
       const centre = h.hit(px, py, out);
       let inside = 0, nx = 0, ny = 0;
       for (let q = 0; q < 4; q++) { const sx = q & 1 ? 1 : -1, sy = q & 2 ? 1 : -1; if (h.hit(px + sx * ox, py + sy * oy, null)) inside++; else { nx += sx; ny += sy; } }
