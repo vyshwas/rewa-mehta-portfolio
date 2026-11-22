@@ -926,3 +926,6 @@ html[data-motion='off'] .wk-media img { transition: none; }
 .method-list { gap: clamp(28px, 4vw, 56px); }
 .method-col { padding-top: 16px; border-top: 1px solid var(--line); }
 .method-col .title { font-size: var(--fs-subtitle); }
+
+/* Room hero: on wide screens the text sits in a left column so the cat has the open floor to the right. */
+@media (min-width: 1000px) { .pond-hero .pond-inner { padding-left: max(48px, 4.5vw); padding-right: 52vw; } .pond-hero .pond-copy { max-width: 36rem; } }
