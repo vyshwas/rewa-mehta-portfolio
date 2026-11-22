@@ -346,7 +346,7 @@ export class SketchRenderer {
     const { geo, wide, obstacles } = this.room;
     // The cat's simulation only needs the floor plan and the projection; give it the same fields the pixel version did.
     const scene = {
-      cols: 0, rows: 0, cw: geo.A < 0.5 ? 3.2 : 4.2, ch: 8, A: geo.A, B: geo.B, cx: geo.cx, ty: geo.ty,
+      cols: 0, rows: 0, cw: geo.A < 0.5 ? 2.4 : 3.0, ch: 8, A: geo.A, B: geo.B, cx: geo.cx, ty: geo.ty,
       rgb: new Float32Array(0), glyph: new Uint16Array(0), gcol: new Uint32Array(0), galpha: new Float32Array(0), light: new Float32Array(0),
       depth: new Int16Array(0), bx1: [], by1: [], obstacles, floor: { x1: WX, y1: LY }, spawn: { x: 330, y: 290 }, nap: { x: 170, y: 300 },
     } as IsoScene;

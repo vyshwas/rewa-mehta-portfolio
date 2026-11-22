@@ -446,7 +446,7 @@ export class IsoHouse {
   // ---------------------------------------------------------------- setup
   attach(scene: IsoScene, w: number, h: number) {
     this.scene = scene; this.width = w; this.height = h;
-    this.S = clamp(scene.cw * (scene.A < 0.5 ? 3.1 : 4.2), 9, 30);                 // sized by character cells, so she always has enough of them to read
+    this.S = clamp(scene.cw * (scene.A < 0.5 ? 3.1 : 4.2), 7, 30);                 // sized by character cells, so she always has enough of them to read
     this.c = Math.min(this.S / scene.A / 1.25, 26);        // world scale for movement and reach
     this.ball.r = clamp(this.c * 0.5, 7, 13);
     this.gw = Math.ceil(scene.floor.x1 / this.g); this.gh = Math.ceil(scene.floor.y1 / this.g);
