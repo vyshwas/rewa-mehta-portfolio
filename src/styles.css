@@ -927,7 +927,8 @@ html[data-motion='off'] .wk-media img { transition: none; }
 .method-col { padding-top: 16px; border-top: 1px solid var(--line); }
 .method-col .title { font-size: var(--fs-subtitle); }
 
-/* Room hero: on wide screens the text sits in a left column so the cat has the open floor to the right. */
-@media (min-width: 1000px) { .pond-hero .pond-inner { padding-left: max(48px, 4.5vw); padding-right: 52vw; } .pond-hero .pond-copy { max-width: 36rem; } }
-
-.pond-hero .pond-quote { color: var(--fg-2); }
+/* The cat room at the end of the page: a drawing below the contact details. */
+.room-stage { position: relative; height: clamp(440px, 74svh, 800px); margin-top: clamp(48px, 9vh, 110px); }
+.room-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.room-caption { position: absolute; left: 0; bottom: 0; margin: 0; font-size: 12px; letter-spacing: 0.04em; text-transform: lowercase; color: var(--fg-3); pointer-events: none; }
+@media (max-width: 700px) { .room-stage { height: clamp(260px, 44svh, 380px); } }

@@ -3,7 +3,8 @@ import { ArrowUpRight, ArrowUp, Copy, Check } from '@phosphor-icons/react';
 import { MotionProvider, ScrollChoreography, useMotion } from './motion';
 import Atmosphere from './components/Atmosphere';
 import PondWater from './components/PondWater';
-import Hero from './components/RoomHero';
+import Hero from './components/PondHero';
+import CatRoom from './components/CatRoom';
 import Manifesto from './components/Manifesto';
 import Work from './components/Work';
 import WorkingWithMe from './components/WorkingWithMe';
@@ -98,6 +99,7 @@ function Contact() {
           {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed — select the address instead' : ''}
         </p>
       </div>
+      <CatRoom />
     </section>
   );
 }

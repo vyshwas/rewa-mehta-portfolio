@@ -25,16 +25,18 @@ interface Item { x1: number; y1: number; ops: Op[] }
 
 interface Geo { A: number; B: number; cx: number; ty: number; lw: number }
 
-function makeGeo(W: number, H: number): { geo: Geo; wide: boolean } {
+function makeGeo(W: number, H: number, centered = false): { geo: Geo; wide: boolean } {
   const wide = typeof window !== 'undefined' && window.matchMedia('(min-width: 1000px)').matches;   // same breakpoint as the CSS
   const RW = 640, RL = 540;
   let A: number;
-  if (wide) A = Math.min(clamp((H * 0.97 - 30) / 880, 0.5, 1.4), (W - 8) / (RW + RL));
+  if (centered) A = clamp(Math.min((H * 0.96 - 40) / 866, (W - 8) / (RW + RL)), 0.25, 1.4);
+  else if (wide) A = Math.min(clamp((H * 0.97 - 30) / 880, 0.5, 1.4), (W - 8) / (RW + RL));
   else A = clamp(Math.min(W / 1180, (H * 0.62 - 40) / 866), 0.25, 1);
-  const B = A * 0.95, cx = wide ? clamp(W * 0.6, RL * A, W - 8 - RW * A) : W * 0.5;
+  const B = A * 0.95, cx = centered ? W * 0.5 : wide ? clamp(W * 0.6, RL * A, W - 8 - RW * A) : W * 0.5;
   const wallTop = 280 * B;
-  let ty = wallTop + (wide ? 34 : 64);
-  if (!wide) ty += Math.max(0, (H * 0.5 - 64 - (wallTop + 570 * A + 10)) / 2);
+  let ty = wallTop + (centered || wide ? 34 : 64);
+  if (centered) ty += Math.max(0, (H - (wallTop + 570 * A + 44)) / 2);
+  else if (!wide) ty += Math.max(0, (H * 0.5 - 64 - (wallTop + 570 * A + 10)) / 2);
   return { geo: { A, B, cx, ty, lw: clamp(1 + A * 1.0, 1.1, 2) }, wide };
 }
 
@@ -120,8 +122,8 @@ interface Room { geo: Geo; wide: boolean; items: Item[]; drawBackground: (ctx: C
 
 const WX = 640, LY = 540, HW = 280;
 
-function buildRoom(W: number, H: number): Room {
-  const { geo, wide } = makeGeo(W, H);
+function buildRoom(W: number, H: number, centered = false): Room {
+  const { geo, wide } = makeGeo(W, H, centered);
   const s0 = new Sk(geo), P = (x: number, y: number, z: number) => s0.P(x, y, z);
   const PR = (a: number, z: number) => P(a, 0, z), PL = (a: number, z: number) => P(0, a, z);
   const items: Item[] = [];
@@ -336,13 +338,13 @@ export class SketchRenderer {
   private bg: HTMLCanvasElement | null = null; private dimLayer: HTMLCanvasElement | null = null;
   private dimSig = '';
 
-  constructor(canvas: HTMLCanvasElement) { const c = canvas.getContext('2d'); if (!c) throw new Error('2D canvas unavailable'); this.ctx = c; }
+  constructor(canvas: HTMLCanvasElement, private centered = false) { const c = canvas.getContext('2d'); if (!c) throw new Error('2D canvas unavailable'); this.ctx = c; }
 
   resize(w: number, h: number, dpr: number, house: IsoHouse) {
     this.dpr = dpr; this.W = w; this.H = h;
     this.ctx.canvas.width = Math.round(w * dpr); this.ctx.canvas.height = Math.round(h * dpr);
     seedCounter = 1;
-    this.room = buildRoom(w, h);
+    this.room = buildRoom(w, h, this.centered);
     const { geo, wide, obstacles } = this.room;
     // The cat's simulation only needs the floor plan and the projection; give it the same fields the pixel version did.
     const scene = {
