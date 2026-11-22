@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowDown } from '@phosphor-icons/react';
-import { IsoHouse, IsoRenderer, type Box } from './room/iso';
+import { IsoHouse } from './room/iso';
+import { SketchRenderer, type Box } from './room/sketch';
 import { email } from '../data';
 import { useMotion } from '../motion';
 
@@ -38,8 +39,8 @@ export default function RoomHero() {
     const canvas = canvasRef.current, section = sectionRef.current;
     if (!canvas || !section) return;
     const room = new IsoHouse();
-    let renderer: IsoRenderer;
-    try { renderer = new IsoRenderer(canvas); } catch { return; }
+    let renderer: SketchRenderer;
+    try { renderer = new SketchRenderer(canvas); } catch { return; }
     let raf = 0, last = 0, acc = 0, frames = 0, visible = true, lastPtr = 0, resizeTimer = 0, lastW = 0, lastH = 0;
 
     const boxes = (): Box[] => {
