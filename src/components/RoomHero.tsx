@@ -40,7 +40,7 @@ export default function RoomHero() {
     const room = new House();
     let renderer: HouseRenderer;
     try { renderer = new HouseRenderer(canvas); } catch { return; }
-    let raf = 0, last = 0, acc = 0, frames = 0, visible = true, lastPtr = 0;
+    let raf = 0, last = 0, acc = 0, frames = 0, visible = true, lastPtr = 0, resizeTimer = 0, lastW = 0, lastH = 0;
 
     const boxes = (): Box[] => {
       const r = canvas.getBoundingClientRect();
@@ -63,6 +63,14 @@ export default function RoomHero() {
       const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(4e6 / (r.width * r.height))));
       renderer.resize(r.width, r.height, dpr, room);
       refresh();
+      lastW = r.width; lastH = r.height;
+      if (!motionOn) renderer.render(room);   // resizing clears the canvas; repaint it when nothing is animating
+    };
+    // A window drag fires many resizes; wait for it to settle, and ignore no-op notifications.
+    const onResize = () => {
+      const r = canvas.getBoundingClientRect();
+      if (Math.abs(r.width - lastW) < 1 && Math.abs(r.height - lastH) < 1) return;
+      window.clearTimeout(resizeTimer); resizeTimer = window.setTimeout(layout, 120);
     };
     const refresh = () => {
       const bs = boxes();
@@ -102,14 +110,14 @@ export default function RoomHero() {
       if (!motionOn) return;
       const t = e.target as Element | null;
       if (!t || !section.contains(t)) return;
-      if (t.closest('a, button, input, textarea, select, label, header, nav, [role="button"], [data-koi-ignore]')) return;
+      if (t.closest('a, button, input, textarea, select, label, header, nav, [role="button"], [data-koi-ignore], .pond-copy, .pond-quote')) return;
       if (window.getSelection()?.toString()) return;
       const { x, y, inside } = local(e);
       if (inside) room.toss(x, y);
     };
     const onLeave = () => { room.pointer.active = false; room.pointer.speed = 0; };
 
-    const ro = new ResizeObserver(layout); ro.observe(canvas);
+    const ro = new ResizeObserver(onResize); ro.observe(canvas);
     const io = new IntersectionObserver(([en]) => { visible = en.isIntersecting; schedule(); }); io.observe(canvas);
     window.addEventListener('pointermove', onMove, { passive: true });
     window.addEventListener('click', onClick);
@@ -119,7 +127,7 @@ export default function RoomHero() {
     layout(); schedule();
 
     return () => {
-      cancelAnimationFrame(raf); ro.disconnect(); io.disconnect();
+      cancelAnimationFrame(raf); window.clearTimeout(resizeTimer); ro.disconnect(); io.disconnect();
       window.removeEventListener('pointermove', onMove); window.removeEventListener('click', onClick);
       document.documentElement.removeEventListener('pointerleave', onLeave); window.removeEventListener('blur', onLeave);
     };

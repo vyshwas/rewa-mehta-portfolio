@@ -252,11 +252,6 @@ function buildScene(W: number, H: number, cw: number, ch: number): SceneData {
       }
     }
   }
-  // ---- AC unit
-  const acX = clamp(Wd * 0.58, shX1 + 40, FR - 230);
-  s.rrect(acX, 12, 200, 40, 6, { c: [232, 230, 226], sh: [2, 4, 0.2] });
-  s.rect(acX + 12, 40, 176, 4, { c: [190, 188, 184], shade: 0 });
-  s.ell(acX + 176, 22, 2.5, 2.5, 0, { c: [120, 220, 150], shade: 0 });
 
   // ---- bed against the back-left corner
   const bedW = tall ? Wd * 0.44 : 350, bedX = Lw + 10, bedY = T + 22, bedH = 172;
@@ -289,6 +284,11 @@ function buildScene(W: number, H: number, cw: number, ch: number): SceneData {
       }
     }
   }
+  // AC unit above the shelf and mirror
+  const acW = tall ? 150 : 200;
+  s.rrect(bsX - 6, 8, acW, 34, 6, { c: [232, 230, 226], sh: [2, 4, 0.2] });
+  s.rect(bsX + 4, 32, acW - 20, 4, { c: [190, 188, 184], shade: 0 });
+  s.ell(bsX + acW - 24, 18, 2.5, 2.5, 0, { c: [120, 220, 150], shade: 0 });
   const mirX = bsX + bsW + 30, mirW = 92;
   if (mirX + mirW < FR - 20) {
     s.rect(mirX - 5, T * 0.4, mirW + 10, T + 165 - T * 0.4, { c: K.woodM, sh: [4, 6, 0.3], block: true });
@@ -298,7 +298,7 @@ function buildScene(W: number, H: number, cw: number, ch: number): SceneData {
 
   // ---- rug and sofa
   const sofaX = Lw + 6, sofaW = 156, sofaY = bedY + bedH + 74, sofaH = 230;
-  const rugX0 = sofaX + sofaW + 34, rugX1 = Math.max(rugX0 + 210, FR - (tall ? 150 : 330)), rugY0 = T + 190, rugH = tall ? 210 : 190;
+  const rugX0 = sofaX + sofaW + 34, rugX1 = Math.max(rugX0 + 210, Math.min(FR - (tall ? 150 : 330), rugX0 + 760)), rugY0 = T + 190, rugH = tall ? 210 : 190;
   s.rrect(rugX0, rugY0, rugX1 - rugX0, rugH, 4, {
     c: (u, v, x, y) => { const edge = Math.min(u, 1 - u, v * 0.7, (1 - v) * 0.7) < 0.04; return edge ? K.rugEdge : mix(K.rug, mul(K.rug, 1.12), hash((x / s.cw) | 0, (y / s.ch) | 0, 3) * 0.6); },
     g: (u, v, x, y) => (hash((x / s.cw) | 0, (y / s.ch) | 0, 13) < 0.12 ? '.' : null), gc: [150, 160, 110], ga: 0.4, shade: 0.5, sh: [0, 3, 0.15],
@@ -317,15 +317,23 @@ function buildScene(W: number, H: number, cw: number, ch: number): SceneData {
   s.rrect(sofaX + 66, sofaY + sofaH - 70, 44, 44, 8, { c: [222, 204, 178], shade: 0.9, sh: [2, 3, 0.2] });
 
   // ---- coffee table
-  const ctW = tall ? 108 : 148, ctH = tall ? 70 : 86, ctX = (rugX0 + rugX1) / 2 - ctW / 2, ctY = rugY0 + (rugH - ctH) / 2;
+  const ctW = tall ? 100 : 132, ctH = tall ? 58 : 66, ctX = (rugX0 + rugX1) / 2 - ctW / 2, ctY = rugY0 + rugH * 0.46;
   s.rect(ctX, ctY, ctW, ctH, { c: (u, v) => mix(K.woodM, K.woodD, v * 0.4), sh: [5, 7, 0.3], block: true });
   s.rect(ctX + 10, ctY + 8, 40, 26, { c: K.white, shade: 0.8 }); s.rect(ctX + 14, ctY + 12, 32, 6, { c: [160, 110, 80], shade: 0.5 });
   s.ell(ctX + ctW - 26, ctY + 24, 10, 10, 0, { c: K.pot }); foliage(s, ctX + ctW - 26, ctY + 24, 12, 31, 5);
   s.ell(ctX + 28, ctY + ctH - 22, 8, 8, 0, { c: K.white, sh: [2, 3, 0.2] });
   s.rect(ctX + ctW - 60, ctY + ctH - 20, 34, 10, { c: [60, 50, 50], shade: 0.5 });
 
+  // ---- on wide screens, the floor freed to the right of the rug gets a pouf and a plant
+  const spareX0 = rugX1 + 40, spareX1 = FR - (tall ? 150 : 330);
+  if (!tall && spareX1 - spareX0 > 120) {
+    const mx = (spareX0 + spareX1) / 2;
+    s.ell(mx, rugY0 + 120, 36, 32, 0, { c: [186, 150, 120], sh: [4, 6, 0.3], shade: 0.9, block: true, g: (u, v, x, y) => (((Math.floor(x / s.cw) + Math.floor(y / s.ch)) % 3) === 0 ? '~' : null), gc: [140, 108, 84], ga: 0.5 });
+    plant(s, mx + 30, rugY0 - 10, 30, 51, true);
+  }
+
   // ---- TV stand + TV, fiddle-leaf fig, side plants
-  const tvY = T + 104, tvH = 226;
+  const tvY = tall ? T + 200 : T + 104, tvH = 226;
   s.rect(FR - 88, tvY, 84, tvH, { c: K.woodM, sh: [-3, 6, 0.3], block: true });
   s.rect(FR - 56, tvY + 14, 20, tvH - 28, { c: K.dark, shade: 0.6 });
   s.rect(FR - 52, tvY + 20, 4, tvH - 44, { c: [70, 80, 110], shade: 0 });
@@ -333,7 +341,9 @@ function buildScene(W: number, H: number, cw: number, ch: number): SceneData {
   plant(s, FR - 40, tvY + tvH + 36, 26, 22);
 
   // ---- desk with monitor, laptop, keyboard (vertical along the right wall)
-  const dkX = FR - 172, dkY = tall ? Hd - 400 : Hd - 340, dkW = 166, dkH = tall ? 380 : 320;
+  const dkW = 166, dkX = FR - 172, dkH0 = tall ? 380 : 320;
+  const dkY = Math.max(tvY + tvH + 80, Hd - dkH0 - 20);
+  const dkH = Math.max(120, Math.min(dkH0, Hd - dkY - 10));
   s.rect(dkX, dkY, dkW, dkH, { c: K.white, sh: [-4, 6, 0.3], block: true });
   s.rect(dkX + dkW - 52, dkY + 36, 22, 150, { c: K.dark, shade: 0.6 });            // monitor
   s.rect(dkX + dkW - 48, dkY + 42, 6, 138, { c: K.screen, shade: 0 });
@@ -423,23 +433,23 @@ export class House {
   w: Record<string, number> = { trot: 0, stalk: 0, leap: 0, sit: 1, groom: 0, sleep: 0 };
   pose = new Float32Array(8);
   ball = { x: 0, y: 0, vx: 0, vy: 0, r: 8, spin: 0 };
-  walk = new Uint8Array(0);                        // 1 = the cat may stand here
+  walk: Uint8Array = new Uint8Array(0);           // 1 = the cat may stand here
   avoid: Box[] = [];
   pointer = { x: 0, y: 0, speed: 0, active: false };
   prims: Prim[] = [];
   private stuckT = 0;
   private aSig = '';
 
+  napPt = { x: 0, y: 0 };
+  private placed = false;
+
   attach(scene: SceneData, w: number, h: number) {
-    const first = !this.scene;
     this.scene = scene; this.width = w; this.height = h;
-    this.c = clamp(Math.min(w, h * 1.2) * 0.023, 13, 32);
+    this.c = clamp(Math.min(w, h * 1.2) * 0.027, 14, 36);
     this.ball.r = this.c * 0.5;
-    this.rebuildWalk();
-    if (first || !this.free(this.x, this.y)) {
-      this.x = scene.spawn.x; this.y = scene.spawn.y; this.heading = 0;
-      this.setBall(scene.spawn.x + this.c * 12, scene.spawn.y);
-    }
+    // The walkable area is rebuilt by the next setAvoid() call, once the text boxes are known.
+    this.walk = new Uint8Array(0);
+    this.aSig = '\u0000';
   }
 
   setAvoid(boxes: Box[]) {
@@ -449,20 +459,39 @@ export class House {
     this.rebuildWalk();
   }
 
-  /** Cells the cat can stand on: floor, away from furniture, away from the text, connected to the rug. */
+  /** The largest connected patch of floor the cat can use, trying tighter clearances first. */
   private rebuildWalk() {
     const s = this.scene; if (!s) return;
-    const { cols, rows, cw, ch } = s;
-    const n = cols * rows, blocked = new Uint8Array(n);
+    const n = s.cols * s.rows, need = Math.max(500, n * 0.04);
+    const ladder: [number, number][] = [[1.7, 6], [1.4, 4], [1.1, 3], [0.8, 2], [0.5, 1], [0.3, 0], [0.5, -1]];
+    let best: Uint8Array | null = null, bestCount = 0;
+    for (const [clearance, padCells] of ladder) {
+      const r = this.walkFor(clearance, padCells);
+      if (r.count > bestCount) { best = r.walk; bestCount = r.count; }
+      if (r.count >= need) break;
+    }
+    this.walk = best ?? new Uint8Array(n);
+    // spawn and nap spots: the walkable cells nearest the middle of the rug
+    const sp = this.nearestFree(s.spawn.x, s.spawn.y), np = this.nearestFree(this.napPt.x, this.napPt.y);
+    this.napPt = np;
+    if (!this.placed) { this.x = sp.x; this.y = sp.y; this.heading = 0; this.setBall(sp.x + this.c * 10, sp.y); this.placed = true; return; }
+    // a resize or a text change may have left her (or the ball) somewhere she cannot stand: move them
+    if (!this.free(this.x, this.y)) { const q = this.nearestFree(this.x, this.y); this.x = q.x; this.y = q.y; }
+    if (!this.free(this.ball.x, this.ball.y)) { this.setBall(this.x + this.c * 8, this.y); this.ball.vx = 0; this.ball.vy = 0; }
+  }
+
+  private walkFor(clearance: number, padCells: number) {
+    const s = this.scene as SceneData;
+    const { cols, rows, cw, ch } = s, n = cols * rows;
+    const blocked = new Uint8Array(n);
     blocked.set(s.blocked);
-    const pad = 6 * cw;
-    for (const b of this.avoid) {
+    const pad = Math.max(0, padCells) * cw;
+    if (padCells >= 0) for (const b of this.avoid) {
       const c0 = Math.max(0, Math.floor((b.left - pad) / cw)), c1 = Math.min(cols - 1, Math.floor((b.right + pad) / cw));
       const r0 = Math.max(0, Math.floor((b.top - pad) / ch)), r1 = Math.min(rows - 1, Math.floor((b.bottom + pad) / ch));
       for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) blocked[r * cols + c] = 1;
     }
-    // inflate by the cat's radius
-    const rad = Math.max(1, Math.round(this.c * 1.7 / cw)), rv = Math.max(1, Math.round(this.c * 1.7 / ch));
+    const rad = Math.max(1, Math.round(this.c * clearance / cw)), rv = Math.max(1, Math.round(this.c * clearance / ch));
     const inflated = new Uint8Array(n);
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
       if (!blocked[r * cols + c]) continue;
@@ -471,25 +500,26 @@ export class House {
         if (rr >= 0 && rr < rows && cc >= 0 && cc < cols && (dr * dr) / (rv * rv) + (dc * dc) / (rad * rad) <= 1.2) inflated[rr * cols + cc] = 1;
       }
     }
-    // keep only the region connected to the rug
-    const walk = new Uint8Array(n);
-    let sc = Math.floor(s.spawn.x / cw), sr = Math.floor(s.spawn.y / ch);
-    if (inflated[sr * cols + sc]) {
-      let found = false;
-      for (let rad2 = 1; rad2 < 40 && !found; rad2++) for (let dr = -rad2; dr <= rad2 && !found; dr++) for (let dc = -rad2; dc <= rad2 && !found; dc++) {
-        const rr = sr + dr, cc = sc + dc;
-        if (rr >= 0 && rr < rows && cc >= 0 && cc < cols && !inflated[rr * cols + cc]) { sr = rr; sc = cc; found = true; }
+    // label the connected patches and keep the biggest
+    const label = new Int32Array(n);
+    let bestId = 0, bestSize = 0, id = 0;
+    for (let i0 = 0; i0 < n; i0++) {
+      if (inflated[i0] || label[i0]) continue;
+      id++;
+      let size = 0;
+      const stack = [i0];
+      while (stack.length) {
+        const i = stack.pop() as number;
+        if (label[i] || inflated[i]) continue;
+        label[i] = id; size++;
+        const c = i % cols, r = (i / cols) | 0;
+        if (c > 0) stack.push(i - 1); if (c < cols - 1) stack.push(i + 1); if (r > 0) stack.push(i - cols); if (r < rows - 1) stack.push(i + cols);
       }
+      if (size > bestSize) { bestSize = size; bestId = id; }
     }
-    const stack = [sr * cols + sc];
-    while (stack.length) {
-      const i = stack.pop() as number;
-      if (walk[i] || inflated[i]) continue;
-      walk[i] = 1;
-      const c = i % cols, r = (i / cols) | 0;
-      if (c > 0) stack.push(i - 1); if (c < cols - 1) stack.push(i + 1); if (r > 0) stack.push(i - cols); if (r < rows - 1) stack.push(i + cols);
-    }
-    this.walk = walk;
+    const walk = new Uint8Array(n);
+    if (bestId) for (let i = 0; i < n; i++) if (label[i] === bestId) walk[i] = 1;
+    return { walk, count: bestSize };
   }
 
   free(x: number, y: number) {
@@ -542,6 +572,12 @@ export class House {
     if (Math.hypot(b.vx, b.vy) < 6) { b.vx = 0; b.vy = 0; }
     b.spin += (Math.hypot(b.vx, b.vy) / b.r) * dt;
     if (!this.free(b.x, b.y)) this.setBall(b.x, b.y);
+  }
+
+  /** She is stuck behind something: put the ball back on open floor just in front of her. */
+  private rescueBall() {
+    const p = this.nearestFree(this.x + Math.cos(this.heading) * this.c * 6, this.y + Math.sin(this.heading) * this.c * 6);
+    this.ball.x = p.x; this.ball.y = p.y; this.ball.vx = 0; this.ball.vy = 0;
   }
 
   private steer(desired: number, dt: number, v: number) {
@@ -600,7 +636,7 @@ export class House {
         target = 'stalk'; v = 2.6 * c;
         this.steer(toBall, dt, v);
         if (dist < 5 || this.stateT > this.stateDur) this.go('pounce');
-        if (this.stuckT > 1) this.go('watch', 1);
+        if (this.stuckT > 0.8) { this.rescueBall(); this.go('watch', 0.8); }
         break;
       }
       case 'pounce': {
@@ -635,7 +671,8 @@ export class House {
         target = 'trot'; v = 15 * c;
         this.steer(toBall, dt, v);
         if (dist < 3.2) this.go('bat');
-        else if (this.stateT > this.stateDur || this.stuckT > 1) this.go('watch', rand(1.4, 2.4));
+        else if (this.stuckT > 0.8) { this.rescueBall(); this.go('watch', 0.8); }
+        else if (this.stateT > this.stateDur) this.go('watch', rand(1.4, 2.4));
         break;
       }
       case 'groom': {
@@ -644,11 +681,10 @@ export class House {
         break;
       }
       case 'sleep': {
-        const s = this.scene as SceneData;
         if (this.napWalk) {
           target = 'trot'; v = 7 * c;
-          const d = Math.hypot(s.nap.x - this.x, s.nap.y - this.y);
-          this.steer(Math.atan2(s.nap.y - this.y, s.nap.x - this.x), dt, v);
+          const d = Math.hypot(this.napPt.x - this.x, this.napPt.y - this.y);
+          this.steer(Math.atan2(this.napPt.y - this.y, this.napPt.x - this.x), dt, v);
           if (d < c * 1.2 || this.stuckT > 1.2) { this.napWalk = false; this.stateT = 0; }
         } else {
           target = 'sleep';
@@ -697,7 +733,7 @@ export class House {
       const curlX = Math.cos(phi) * R, curlY = Math.sin(phi) * R * (ry / rx + 0.2);
       const nx = trailX + (curlX - trailX) * curl, ny = trailY + (curlY - trailY) * curl;
       const [wx, wy] = W(nx, ny);
-      this.cap('tail', pwx, pwy, wx, wy, c * (0.3 - 0.07 * u), c * (0.3 - 0.07 * (u + 1 / (NT - 1))), k);
+      this.cap('tail', pwx, pwy, wx, wy, c * (0.38 - 0.09 * u), c * (0.38 - 0.09 * (u + 1 / (NT - 1))), k);
       pwx = wx; pwy = wy; tx = nx; ty = ny;
     }
     void tx; void ty;
@@ -718,18 +754,18 @@ export class House {
     this.ell('body', bx, by, rx * c, ry * c, th, 0);
     const hy = side * ry * 0.85;
     const [hx, hyw] = W(hd * (1 - 0.18 * side), hy);
-    this.ell('head', hx, hyw, hr * c * 1.1, hr * c, th + side * 0.5, 0);
+    this.ell('head', hx, hyw, hr * c * 1.2, hr * c * 1.1, th + side * 0.5, 0);
     // ears
     const ea = th + side * 0.5, ec = Math.cos(ea), es = Math.sin(ea);
     const E = (lx: number, ly: number): [number, number] => [hx + (lx * ec - ly * es) * c, hyw + (lx * es + ly * ec) * c];
-    const back = -0.15 - 0.45 * flat;
     for (const sgn of [-1, 1]) {
-      const [a1, a2] = E(back + 0.15, sgn * 0.78), [b1, b2] = E(-0.55 - 0.3 * flat, sgn * 0.5), [c1, c2] = E(back - 0.05, sgn * 0.12);
+      // pointed ears, fur-coloured, standing up and out from the back of the head
+      const [a1, a2] = E(0.15, sgn * 1.0), [b1, b2] = E(-1.0 + 0.45 * flat, sgn * (0.95 - 0.2 * flat)), [c1, c2] = E(-0.3, sgn * 0.2);
       this.tri('ear', a1, a2, b1, b2, c1, c2);
-      const [i1, i2] = E(back + 0.05, sgn * 0.6), [j1, j2] = E(-0.38 - 0.2 * flat, sgn * 0.42), [k1, k2] = E(back, sgn * 0.2);
+      const [i1, i2] = E(0.0, sgn * 0.72), [j1, j2] = E(-0.72 + 0.3 * flat, sgn * 0.72), [k1, k2] = E(-0.25, sgn * 0.3);
       this.tri('earIn', i1, i2, j1, j2, k1, k2);
-      const [ex, ey] = E(0.55, sgn * 0.36);
-      this.dot('eye', ex, ey, c * 0.13);
+      const [ex, ey] = E(0.6, sgn * 0.42);
+      this.dot('eye', ex, ey, c * 0.15);
     }
     const [nx2, ny2] = E(1.0, 0);
     this.dot('nose', nx2, ny2, c * 0.14);
@@ -778,6 +814,7 @@ export class House {
 // ------------------------------------------------------------------ renderer
 
 const RAMP = '.:+oO0@';
+const grp = (part: string) => (part === 'ear' || part === 'earIn' ? 'ear' : part === 'head' || part === 'eye' || part === 'nose' ? 'head' : part);
 
 export class HouseRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -812,10 +849,10 @@ export class HouseRenderer {
     house.attach(this.scene, w, h);
     for (let r = 0; r < this.rows; r++) for (let c = 0; c < this.cols; c++) {
       const x = c * this.cw, y = r * this.ch;
-      this.vig[r * this.cols + c] = smooth(0, w * 0.03, x) * smooth(0, w * 0.03, w - x) * (0.55 + 0.45 * smooth(0, 70, y)) * (0.7 + 0.3 * smooth(0, 90, h - y));
+      this.vig[r * this.cols + c] = smooth(0, w * 0.012, x) * smooth(0, w * 0.012, w - x) * (0.55 + 0.45 * smooth(0, 70, y)) * (0.7 + 0.3 * smooth(0, 90, h - y));
     }
     this.cache = document.createElement('canvas'); this.cache.width = this.ctx.canvas.width; this.cache.height = this.ctx.canvas.height;
-    this.dimSig = ''; this.bake();
+    this.dimSig = '\u0000';   // setDimBoxes() runs right after and paints the room once
   }
 
   setDimBoxes(boxes: Box[]) {
@@ -917,16 +954,21 @@ export class HouseRenderer {
       const px = c * cw + cw / 2, py = r * ch + ch / 2, i = r * cols + c;
       const centre = h.hit(px, py, out);
       if (!centre) { if (h.hit(px - 0.35 * h.c, py - 0.5 * h.c, null)) this.shadow[i] = 1; }
-      let inside = 0, nx = 0, ny = 0;
+      let inside = 0, nx = 0, ny = 0, seam = 0;
+      const cg = centre ? grp(centre.part) : '';
       for (let q = 0; q < 4; q++) {
         const sx = q & 1 ? 1 : -1, sy = q & 2 ? 1 : -1;
-        if (h.hit(px + sx * ox, py + sy * oy, null)) inside++; else { nx += sx; ny += sy; }
+        const o = h.hit(px + sx * ox, py + sy * oy, null);
+        if (o) {
+          inside++;
+          if (centre && centre.part !== 'eye' && centre.part !== 'nose' && o.part !== 'eye' && o.part !== 'nose' && grp(o.part) !== cg) { nx += sx; ny += sy; seam++; }
+        } else { nx += sx; ny += sy; }
       }
       if (!centre && inside < 3) continue;
       let prim = centre, u = out.u, v = out.v;
       if (!centre) { prim = h.hit(px + ox * Math.sign(-nx || 1), py + oy * Math.sign(-ny || 1), out); u = out.u; v = out.v; }
       if (!prim) continue;
-      const edge = !centre || inside < 4, col = h.color(prim, px, py, u, v);
+      const edge = !centre || inside < 4 || seam > 0, col = h.color(prim, px, py, u, v);
       if (prim.part === 'eye' || prim.part === 'nose') { this.glyph[i] = (prim.part === 'eye' ? 'o' : '.').charCodeAt(0); this.color[i] = pack(K.cream); this.alpha[i] = 1; this.tile[i] = pack(col); this.tileA[i] = 1; continue; }
       if (edge) {
         const tx = -ny, ty = nx;
